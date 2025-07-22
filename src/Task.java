@@ -6,12 +6,19 @@ public class Task {
     protected int id;
     protected Status status;
 
-    public Task (String name, String description, Status status) {
+    public Task(String name, String description, Status status) {
         this.name = name;
         this.description = description;
         this.status = status;
         this.id = TaskManager.id;
         TaskManager.id++;
+    }
+
+    public Task(int id, String name, String description, Status status) {
+        this.name = name;
+        this.description = description;
+        this.status = status;
+        this.id = id;
     }
 
     @Override
@@ -24,6 +31,16 @@ public class Task {
     @Override
     public int hashCode() {
         return Objects.hash(name, description, id, status);
+    }
+
+    @Override
+    public String toString() {
+        return "Task{" +
+                "name='" + getName() + '\'' +
+                ", description='" + getDescription() + '\'' +
+                ", id=" + getId() +
+                ", status=" + getStatus() +
+                '}';
     }
 
     public String getName() {
