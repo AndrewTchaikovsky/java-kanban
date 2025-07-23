@@ -1,3 +1,9 @@
+import ru.common.manager.TaskManager;
+import ru.common.model.Epic;
+import ru.common.model.Status;
+import ru.common.model.SubTask;
+import ru.common.model.Task;
+
 public class Main {
 
     public static void main(String[] args) {
@@ -15,6 +21,7 @@ public class Main {
         manager.updateTask(task1Updated);
         Task task2Updated = new Task(task2.getId(), "Таск 2", "Обновленный таск 2", Status.DONE);
         manager.updateTask(task2Updated);
+        System.out.println("");
         System.out.println("UPDATED TASKS:");
         System.out.println(manager.getAllTasks());
         System.out.println("");
@@ -40,6 +47,7 @@ public class Main {
         manager.createSubTask(subtask2);
         manager.createSubTask(subtask3);
         System.out.println("SUBTASKS:");
+        System.out.println(manager.getAllSubTaskIDs());
         System.out.println(manager.getAllSubTasks());
         System.out.println("");
 
@@ -50,6 +58,7 @@ public class Main {
         SubTask subtask3Updated = new SubTask(subtask3.getId(), "Обновленный сабтаск 3", "Сабтаск эпика 2", Status.IN_PROGRESS, epic2);
         manager.updateSubTask(subtask3Updated);
         System.out.println("UPDATED SUBTASKS:");
+        System.out.println(manager.getAllSubTaskIDs());
         System.out.println(manager.getAllSubTasks());
         System.out.println("");
         System.out.println("UPDATED EPICS:");
@@ -57,8 +66,10 @@ public class Main {
         System.out.println("");
         System.out.println("DELETING SUBTASKS:");
         manager.deleteSubTaskById(subtask1.getId());
+        System.out.println(manager.getAllSubTaskIDs());
         System.out.println(manager.getAllSubTasks());
-        manager.deleteSubTasks();
+        manager.deleteAllSubtasks();
+        System.out.println(manager.getAllSubTaskIDs());
         System.out.println(manager.getAllSubTasks());
         System.out.println("");
         System.out.println("DELETING EPICS:");
@@ -66,7 +77,25 @@ public class Main {
         System.out.println(manager.getAllEpics());
         manager.deleteEpics();
         System.out.println(manager.getAllEpics());
+        System.out.println("");
 
+        System.out.println("CHANGING EPIC STATUS");
+        Epic epic3 = new Epic("Эпик 3", "Описание эпика 3");
+        manager.createEpic(epic3);
+        System.out.println("Создаём эпик " + epic3);
+        SubTask subtask4 = new SubTask("Подзадача 4", "Подзадача эпика 3", Status.IN_PROGRESS, epic3);
+        manager.createSubTask(subtask4);
+        System.out.println("Создаём подзадачу " + subtask4.getName() + " с ID " + subtask4.getId() + " и статусом " + subtask4.getStatus());
+        System.out.println("Видим что подзадача добавилась в эпик " + epic3);
+        System.out.println("Удаляем подзадачу " + subtask4.getName() + " с ID " + subtask4.getId() + " и статусом " + subtask4.getStatus());
+        System.out.println("Все подзадачи: " + manager.getAllSubTasks());
+        manager.deleteSubTaskById(subtask4.getId());
+        System.out.println("Все подзадачи после удаления: " + manager.getAllSubTasks());
+        manager.createSubTask(subtask4);
+        System.out.println("Создаем новую подзадачу " + subtask4.getName() + " с ID " + subtask4.getId() + " и статусом " + subtask4.getStatus());
+        manager.deleteEpicSubtasks(epic3);
+        System.out.println("Удаляем новую подзадачу другим методом и получаем " + manager.getAllSubTasks());
+        System.out.println("Видим что подзадачи нет в эпике " + epic3);
 
     }
 }

@@ -1,21 +1,23 @@
+package ru.common.model;
+
 public class SubTask extends Task {
     private Epic epic;
+    int epicID;
 
     public SubTask(String name, String description, Status status, Epic epic) {
         super(name, description, status);
         this.epic = epic;
-        epic.addSubTask(this);
+        epicID = epic.getId();
     }
 
     public SubTask(int id, String name, String description, Status status, Epic epic) {
         super(id, name, description, status);
         this.epic = epic;
-        epic.addSubTask(this);
     }
 
     @Override
     public String toString() {
-        return "SubTask{" +
+        return "ru.common.model.SubTask{" +
                 "epic=" + epic.getName() +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
@@ -26,5 +28,9 @@ public class SubTask extends Task {
 
     public Epic getEpic() {
         return epic;
+    }
+
+    public int getEpicID() {
+        return epicID;
     }
 }
