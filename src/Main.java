@@ -40,9 +40,9 @@ public class Main {
         System.out.println(manager.getAllEpics());
         System.out.println("");
 
-        SubTask subtask1 = new SubTask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epic1);
-        SubTask subtask2 = new SubTask("Сабтаск 2", "Сабтаск эпика 1", Status.NEW, epic1);
-        SubTask subtask3 = new SubTask("Сабтаск 3", "Сабтаск эпика 2", Status.NEW, epic2);
+        SubTask subtask1 = new SubTask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epic1.getId());
+        SubTask subtask2 = new SubTask("Сабтаск 2", "Сабтаск эпика 1", Status.NEW, epic1.getId());
+        SubTask subtask3 = new SubTask("Сабтаск 3", "Сабтаск эпика 2", Status.NEW, epic2.getId());
         manager.createSubTask(subtask1);
         manager.createSubTask(subtask2);
         manager.createSubTask(subtask3);
@@ -51,11 +51,11 @@ public class Main {
         System.out.println(manager.getAllSubTasks());
         System.out.println("");
 
-        SubTask subtask1Updated = new SubTask(subtask1.getId(), "Обновленный сабтаск 1", "Сабтаск эпика 1", Status.DONE, epic1);
+        SubTask subtask1Updated = new SubTask(subtask1.getId(), "Обновленный сабтаск 1", "Сабтаск эпика 1", Status.DONE, epic1.getId());
         manager.updateSubTask(subtask1Updated);
-        SubTask subtask2Updated = new SubTask(subtask2.getId(), "Обновленный сабтаск 2", "Сабтаск эпика 1", Status.DONE, epic1);
+        SubTask subtask2Updated = new SubTask(subtask2.getId(), "Обновленный сабтаск 2", "Сабтаск эпика 1", Status.DONE, epic1.getId());
         manager.updateSubTask(subtask2Updated);
-        SubTask subtask3Updated = new SubTask(subtask3.getId(), "Обновленный сабтаск 3", "Сабтаск эпика 2", Status.IN_PROGRESS, epic2);
+        SubTask subtask3Updated = new SubTask(subtask3.getId(), "Обновленный сабтаск 3", "Сабтаск эпика 2", Status.IN_PROGRESS, epic2.getId());
         manager.updateSubTask(subtask3Updated);
         System.out.println("UPDATED SUBTASKS:");
         System.out.println(manager.getAllSubTaskIDs());
@@ -83,7 +83,7 @@ public class Main {
         Epic epic3 = new Epic("Эпик 3", "Описание эпика 3");
         manager.createEpic(epic3);
         System.out.println("Создаём эпик " + epic3);
-        SubTask subtask4 = new SubTask("Подзадача 4", "Подзадача эпика 3", Status.IN_PROGRESS, epic3);
+        SubTask subtask4 = new SubTask("Подзадача 4", "Подзадача эпика 3", Status.IN_PROGRESS, epic3.getId());
         manager.createSubTask(subtask4);
         System.out.println("Создаём подзадачу " + subtask4.getName() + " с ID " + subtask4.getId() + " и статусом " + subtask4.getStatus());
         System.out.println("Видим что подзадача добавилась в эпик " + epic3);

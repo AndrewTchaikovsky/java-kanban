@@ -91,6 +91,7 @@ public class TaskManager {
     public void deleteAllSubtasks() {
         subtasks.clear();
         for (Epic epic : epics.values()) {
+            epic.getSubtaskIDs().clear();
             Status epicStatus = calculateEpicStatus(epic);
             epic.setStatus(epicStatus);
         }
@@ -107,10 +108,11 @@ public class TaskManager {
         subtask.setId(id);
         id++;
         subtasks.put(subtask.getId(), subtask);
-        subtask.getEpic().getSubtaskIDs().add(subtask.getId());
-        Status epicStatus = calculateEpicStatus(subtask.getEpic());
-        subtask.getEpic().setStatus(epicStatus);
+        getEpicById(subtask.getEpicID()).getSubtaskIDs().add(subtask.getId());
+        Status epicStatus = calculateEpicStatus(getEpicById(subtask.getEpicID()));
+        getEpicById(subtask.getEpicID()).setStatus(epicStatus);
         return subtask.getId();
+
     }
 
     public void updateSubTask(SubTask subtask) {
@@ -119,8 +121,8 @@ public class TaskManager {
             originalSubtask.setName(subtask.getName());
             originalSubtask.setDescription(subtask.getDescription());
             originalSubtask.setStatus(subtask.getStatus());
-            Status epicStatus = calculateEpicStatus(subtask.getEpic());
-            subtask.getEpic().setStatus(epicStatus);
+            Status epicStatus = calculateEpicStatus(getEpicById(subtask.getEpicID()));
+            getEpicById(subtask.getEpicID()).setStatus(epicStatus);
 
         } else {
             System.out.println("Такой подзадачи не существует.");
@@ -131,14 +133,14 @@ public class TaskManager {
         SubTask subtask = subtasks.get(id);
         if (subtask != null) {
             subtasks.remove(id);
-            Epic relatedEpic = subtask.getEpic();
+            Epic relatedEpic = getEpicById(subtask.getEpicID());
             relatedEpic.getSubtaskIDs().remove(id);
             Status epicStatus = calculateEpicStatus(relatedEpic);
-            subtask.getEpic().setStatus(epicStatus);
+            getEpicById(subtask.getEpicID()).setStatus(epicStatus);
         }
     }
 
-    // ru.common.model.Epic-related methods
+    // Epic-related methods
 
     public Collection<Epic> getAllEpics() {
         return epics.values();
