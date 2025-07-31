@@ -1,14 +1,14 @@
 package ru.common.model;
 
-public class SubTask extends Task {
+public class Subtask extends Task {
     int epicID;
 
-    public SubTask(String name, String description, Status status, int epicID) {
+    public Subtask(String name, String description, Status status, int epicID) {
         super(name, description, status);
         this.epicID = epicID;
     }
 
-    public SubTask(int id, String name, String description, Status status, int epicID) {
+    public Subtask(int id, String name, String description, Status status, int epicID) {
         super(id, name, description, status);
         this.epicID = epicID;
     }

@@ -11,6 +11,11 @@ public class Epic extends Task {
         subtaskIDs = new ArrayList<>();
     }
 
+    public Epic(int id, String name, String description) {
+        super(id, name, description, Status.NEW);
+        subtaskIDs = new ArrayList<>();
+    }
+
     @Override
     public String toString() {
         return "ru.common.model.Epic{" +
