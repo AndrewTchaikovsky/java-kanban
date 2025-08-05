@@ -15,13 +15,14 @@ public class InMemoryTaskManager implements TaskManager {
     private HashMap<Integer, Task> tasks;
     private HashMap<Integer, Epic> epics;
     private HashMap<Integer, Subtask> subtasks;
-    private HistoryManager historyManager = Managers.getDefaultHistory();
-    
+    private HistoryManager historyManager;
+
 
     public InMemoryTaskManager() {
         this.tasks = new HashMap<>();
         this.epics = new HashMap<>();
         this.subtasks = new HashMap<>();
+        this.historyManager = Managers.getDefaultHistory();
     }
 
     // Task-related methods
@@ -123,6 +124,11 @@ public class InMemoryTaskManager implements TaskManager {
         }
         Subtask.setId(id);
         id++;
+        if (Subtask.getId() == Subtask.getEpicID()) {
+            System.out.println("У подзадачи и эпика не может быть одинакового айди.");
+            return 0;
+        }
+
         subtasks.put(Subtask.getId(), Subtask);
         getEpic(Subtask.getEpicID()).getSubtaskIDs().add(Subtask.getId());
         Status epicStatus = calculateEpicStatus(getEpic(Subtask.getEpicID()));
@@ -212,7 +218,7 @@ public class InMemoryTaskManager implements TaskManager {
     public List<Integer> getEpicSubtaskIDs(Integer id) {
         return getEpic(id).getSubtaskIDs();
     }
-    
+
     @Override
     public List<Subtask> getEpicSubtasks(Integer id) {
         List<Integer> SubtaskIDs = getEpicSubtaskIDs(id);
@@ -264,9 +270,6 @@ public class InMemoryTaskManager implements TaskManager {
         }
         return Status.IN_PROGRESS;
     }
-
-
-
 
 
 }

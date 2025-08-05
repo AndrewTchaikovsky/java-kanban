@@ -23,12 +23,12 @@ public class Main {
         manager.createEpic(epic1);
         manager.createEpic(epic2);
 
-        Subtask Subtask1 = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epic1.getId());
-        Subtask Subtask2 = new Subtask("Сабтаск 2", "Сабтаск эпика 1", Status.NEW, epic1.getId());
-        Subtask Subtask3 = new Subtask("Сабтаск 3", "Сабтаск эпика 2", Status.NEW, epic2.getId());
-        manager.createSubtask(Subtask1);
-        manager.createSubtask(Subtask2);
-        manager.createSubtask(Subtask3);
+        Subtask subtask1 = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epic1.getId());
+        Subtask subtask2 = new Subtask("Сабтаск 2", "Сабтаск эпика 1", Status.NEW, epic1.getId());
+        Subtask subtask3 = new Subtask("Сабтаск 3", "Сабтаск эпика 2", Status.NEW, epic2.getId());
+        manager.createSubtask(subtask1);
+        manager.createSubtask(subtask2);
+        manager.createSubtask(subtask3);
 
         printAllTasks(manager, historyManager);
 
