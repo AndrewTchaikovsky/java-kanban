@@ -6,22 +6,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class InMemoryHistoryManager implements HistoryManager {
-    private List<Task> lastTenTasks;
+    private List<Task> latestTasks;
+    int numberOfLatestTasks;
 
     public InMemoryHistoryManager() {
-        this.lastTenTasks = new ArrayList<>(10);
+        this.numberOfLatestTasks = 10;
+        this.latestTasks = new ArrayList<>(numberOfLatestTasks);
     }
 
     @Override
     public void add(Task task) {
-        if (lastTenTasks.size() == 10) {
-            lastTenTasks.removeFirst();
+        if (latestTasks.size() == 10) {
+            latestTasks.removeFirst();
         }
-        lastTenTasks.add(task);
+        latestTasks.add(task);
     }
 
     @Override
     public List<Task> getHistory() {
-        return lastTenTasks;
+        return new ArrayList<>(latestTasks);
     }
 }
