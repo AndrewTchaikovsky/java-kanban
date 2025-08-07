@@ -56,4 +56,5 @@ public interface TaskManager {
 
     Status calculateEpicStatus(Epic epic);
 
+    HistoryManager getHistoryManager();
 }

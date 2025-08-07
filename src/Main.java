@@ -11,7 +11,7 @@ public class Main {
 
     public static void main(String[] args) {
         TaskManager manager = Managers.getDefault();
-        HistoryManager historyManager = Managers.getDefaultHistory();
+        HistoryManager historyManager = manager.getHistoryManager();
 
         Task task1 = new Task("Таск 1", "Описание таска 1", Status.NEW);
         Task task2 = new Task("Таск 2", "Описание таска 2", Status.NEW);

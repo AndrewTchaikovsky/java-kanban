@@ -271,5 +271,8 @@ public class InMemoryTaskManager implements TaskManager {
         return Status.IN_PROGRESS;
     }
 
+    public HistoryManager getHistoryManager() {
+        return historyManager;
+    }
 
 }

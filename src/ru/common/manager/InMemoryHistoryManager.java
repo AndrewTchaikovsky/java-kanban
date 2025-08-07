@@ -7,16 +7,15 @@ import java.util.List;
 
 public class InMemoryHistoryManager implements HistoryManager {
     private List<Task> latestTasks;
-    int numberOfLatestTasks;
+    public static final int NUMBER_OF_TASKS = 10;
 
     public InMemoryHistoryManager() {
-        this.numberOfLatestTasks = 10;
-        this.latestTasks = new ArrayList<>(numberOfLatestTasks);
+        this.latestTasks = new ArrayList<>();
     }
 
     @Override
     public void add(Task task) {
-        if (latestTasks.size() == 10) {
+        if (latestTasks.size() == NUMBER_OF_TASKS) {
             latestTasks.removeFirst();
         }
         latestTasks.add(task);
