@@ -34,6 +34,9 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void deleteTasks() {
+        for (Integer id : tasks.keySet()) {
+            historyManager.remove(id);
+        }
         tasks.clear();
     }
 
@@ -69,6 +72,8 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void deleteTask(Integer id) {
         tasks.remove(id);
+        historyManager.remove(id);
+
     }
 
     // Subtask-related methods
@@ -94,6 +99,7 @@ public class InMemoryTaskManager implements TaskManager {
         for (Integer SubtaskID : SubtaskIDs) {
             if (subtasks.containsKey(SubtaskID)) {
                 deleteSubtask(SubtaskID);
+                historyManager.remove(SubtaskID);
             }
         }
         epic.getSubtaskIDs().clear();
@@ -103,6 +109,9 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void deleteSubtasks() {
+        for (Integer id : subtasks.keySet()) {
+            historyManager.remove(id);
+        }
         subtasks.clear();
         for (Epic epic : epics.values()) {
             epic.getSubtaskIDs().clear();
@@ -157,6 +166,7 @@ public class InMemoryTaskManager implements TaskManager {
         Subtask Subtask = subtasks.get(id);
         if (Subtask != null) {
             subtasks.remove(id);
+            historyManager.remove(id);
             Epic relatedEpic = getEpic(Subtask.getEpicID());
             relatedEpic.getSubtaskIDs().remove(id);
             Status epicStatus = calculateEpicStatus(relatedEpic);
@@ -173,8 +183,14 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void deleteEpics() {
-        epics.clear();
+        for (Integer id : subtasks.keySet()) {
+            historyManager.remove(id);
+        }
         subtasks.clear();
+        for (Integer id : epics.keySet()) {
+            historyManager.remove(id);
+        }
+        epics.clear();
     }
 
     @Override
@@ -212,6 +228,7 @@ public class InMemoryTaskManager implements TaskManager {
             deleteSubtask(SubtaskID);
         }
         epics.remove(id);
+        historyManager.remove(id);
     }
 
     @Override

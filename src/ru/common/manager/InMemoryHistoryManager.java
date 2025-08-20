@@ -1,7 +1,6 @@
 package ru.common.manager;
 
 import ru.common.model.Task;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,6 +18,11 @@ public class InMemoryHistoryManager implements HistoryManager {
             latestTasks.removeFirst();
         }
         latestTasks.add(task);
+    }
+
+    @Override
+    public void remove(int id) {
+        latestTasks.remove(id);
     }
 
     @Override
