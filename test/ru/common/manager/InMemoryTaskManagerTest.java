@@ -1,5 +1,6 @@
 package ru.common.manager;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import ru.common.model.Epic;
@@ -308,6 +309,64 @@ class InMemoryTaskManagerTest {
 
         assertEquals(expected, actual, "Список подзадач эпика не совпадает с добавленными в этот эпик подзадачами.");
     }
+
+    @Test
+    void deletedSubtasksShouldBeRemovedFromTheMap() {
+        Epic epic = new Epic("Эпик 1", "Описание эпика 1");
+        int epicID = manager.createEpic(epic);
+
+        Subtask subtask = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID);
+        int subtaskID = manager.createSubtask(subtask);
+
+        Assertions.assertNotNull(manager.getSubtask(subtaskID), "Подзадача не была добавлена.");
+
+        manager.deleteSubtask(subtaskID);
+        Assertions.assertNull(manager.getSubtask(subtaskID), "Подзадача не была удалена.");
+    }
+
+    @Test
+    void epicShouldNotContainDeletedSubtasksIds() {
+        Epic epic = new Epic("Эпик 1", "Описание эпика 1");
+        int epicID = manager.createEpic(epic);
+
+        Subtask subtask = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID);
+        int subtaskID = manager.createSubtask(subtask);
+
+        Assertions.assertTrue(epic.getSubtaskIDs().contains(subtaskID), "Айди подзадачи не было добавлено в эпик.");
+
+        manager.deleteSubtask(subtaskID);
+        Assertions.assertFalse(epic.getSubtaskIDs().contains(subtaskID), "Айди удаленной подзадачи не было удалено из эпика.");
+    }
+
+    @Test
+    void historyManagerShouldNotKeepDeletedSubtasks() {
+        Epic epic = new Epic("Эпик 1", "Описание эпика 1");
+        int epicID = manager.createEpic(epic);
+
+        Subtask subtask = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID);
+        int subtaskID = manager.createSubtask(subtask);
+
+        manager.getSubtask(subtaskID);
+        Assertions.assertTrue(manager.getHistoryManager().getHistory().contains(subtask));
+
+        manager.deleteSubtask(subtaskID);
+        Assertions.assertFalse(manager.getHistoryManager().getHistory().contains(subtask));
+
+    }
+
+    @Test
+    void changingTaskIdIsNotAllowed() {
+        Task task = new Task("Таск 1", "Описание таска 1", Status.NEW);
+        int oldId = manager.createTask(task);
+        manager.getTask(oldId);
+
+        int newId = oldId + 100;
+        task.setId(newId);
+        manager.getTask(newId);
+
+        Assertions.assertEquals(oldId, manager.getTask(oldId).getId(), "Айди задачи было изменено вручную.");
+    }
+
 
 
 }

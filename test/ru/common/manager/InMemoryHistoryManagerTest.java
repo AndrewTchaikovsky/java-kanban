@@ -57,9 +57,23 @@ class InMemoryHistoryManagerTest {
     }
 
     @Test
-    void shouldCorrectlyAddTask() {
+    void shouldCorrectlyAddTasks() {
+        Task task = new Task("Таск 1", "Описание таска 1", Status.NEW);
+        manager.createTask(task);
+        historyManager.add(task);
 
+        Assertions.assertTrue(historyManager.getHistory().contains(task), "Зазача не была добавлена в историю.");
+    }
 
+    @Test
+    void shouldCorrectlyDeleteTasks() {
+        Task task = new Task("Таск 1", "Описание таска 1", Status.NEW);
+        manager.createTask(task);
+        historyManager.add(task);
+
+        Assertions.assertTrue(historyManager.getHistory().contains(task), "Зазача не была добавлена в историю.");
+        historyManager.remove(task.getId());
+        Assertions.assertTrue(historyManager.getHistory().isEmpty(), "Задача не была удалена из истории.");
     }
 
 }

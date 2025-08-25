@@ -28,8 +28,8 @@ public class InMemoryTaskManager implements TaskManager {
     // Task-related methods
 
     @Override
-    public Collection<Task> getTasks() {
-        return tasks.values();
+    public List<Task> getTasks() {
+        return new ArrayList<>(tasks.values());
     }
 
     @Override
@@ -79,8 +79,8 @@ public class InMemoryTaskManager implements TaskManager {
     // Subtask-related methods
 
     @Override
-    public Collection<Subtask> getSubtasks() {
-        return subtasks.values();
+    public List<Subtask> getSubtasks() {
+        return new ArrayList<>(subtasks.values());
     }
 
     @Override
@@ -177,8 +177,8 @@ public class InMemoryTaskManager implements TaskManager {
     // Epic-related methods
 
     @Override
-    public Collection<Epic> getEpics() {
-        return epics.values();
+    public List<Epic> getEpics() {
+        return new ArrayList<>(epics.values());
     }
 
     @Override

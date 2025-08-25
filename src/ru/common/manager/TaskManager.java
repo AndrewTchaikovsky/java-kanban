@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface TaskManager {
 
-    Collection<Task> getTasks();
+    List<Task> getTasks();
 
     void deleteTasks();
 
@@ -22,7 +22,7 @@ public interface TaskManager {
 
     void deleteTask(Integer id);
 
-    Collection<Subtask> getSubtasks();
+    List<Subtask> getSubtasks();
 
     List<Integer> getSubtaskIDs();
 
@@ -38,7 +38,7 @@ public interface TaskManager {
 
     void deleteSubtask(Integer id);
 
-    Collection<Epic> getEpics();
+    List<Epic> getEpics();
 
     void deleteEpics();
 
