@@ -97,11 +97,11 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void deleteEpicSubtasks(Epic epic) {
-        List<Integer> SubtaskIDs = new ArrayList<>(epic.getSubtaskIDs());
-        for (Integer SubtaskID : SubtaskIDs) {
-            if (subtasks.containsKey(SubtaskID)) {
-                deleteSubtask(SubtaskID);
-                historyManager.remove(SubtaskID);
+        List<Integer> subtaskIDs = new ArrayList<>(epic.getSubtaskIDs());
+        for (Integer subtaskID : subtaskIDs) {
+            if (subtasks.containsKey(subtaskID)) {
+                deleteSubtask(subtaskID);
+                historyManager.remove(subtaskID);
             }
         }
         epic.getSubtaskIDs().clear();
@@ -255,20 +255,20 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public List<Subtask> getEpicSubtasks(Integer id) {
-        List<Integer> SubtaskIDs = getEpicSubtaskIDs(id);
+        List<Integer> subtaskIDs = getEpicSubtaskIDs(id);
         List<Subtask> epicsubtasks = new ArrayList<>();
-        for (Integer SubtaskID : SubtaskIDs) {
-            epicsubtasks.add(getSubtask(SubtaskID));
+        for (Integer subtaskID : subtaskIDs) {
+            epicsubtasks.add(getSubtask(subtaskID));
         }
         return epicsubtasks;
     }
 
     @Override
     public Status calculateEpicStatus(Epic epic) {
-        List<Integer> SubtaskIDs = epic.getSubtaskIDs();
+        List<Integer> subtaskIDs = epic.getSubtaskIDs();
         HashMap<Integer, Subtask> epicsubtasks = new HashMap<>();
         for (Subtask Subtask : subtasks.values()) {
-            if (SubtaskIDs.contains(Subtask.getId())) {
+            if (subtaskIDs.contains(Subtask.getId())) {
                 epicsubtasks.put(Subtask.getId(), Subtask);
             }
         }
