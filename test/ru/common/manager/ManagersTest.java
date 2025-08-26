@@ -14,7 +14,7 @@ class ManagersTest {
     @BeforeAll
     static void setUp() {
         manager = Managers.getDefault();
-        historyManager = Managers.getDefaultHistory();
+        historyManager = manager.getHistoryManager();
     }
 
     @Test

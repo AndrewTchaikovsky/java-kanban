@@ -27,4 +27,11 @@ public class Subtask extends Task {
     public int getEpicID() {
         return epicID;
     }
+
+    @Override
+    public Subtask copy() {
+        return new Subtask(id, name, description, status, epicID);
+    }
+
+
 }

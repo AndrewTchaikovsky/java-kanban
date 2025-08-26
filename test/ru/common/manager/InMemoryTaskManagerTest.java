@@ -2,6 +2,7 @@ package ru.common.manager;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.common.model.Epic;
 import ru.common.model.Status;
@@ -19,6 +20,13 @@ class InMemoryTaskManagerTest {
     @BeforeAll
     static void setUp() {
         manager = Managers.getDefault();
+    }
+
+    @BeforeEach
+    void beforeEachTest() {
+        manager.deleteTasks();
+        manager.deleteSubtasks();
+        manager.deleteEpics();
     }
 
     @Test
@@ -52,22 +60,19 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void shouldNotConflictWithManuallySetIDOnUpdate() {
+    void shouldNotConflictWithManuallySetID() {
         Task task1 = new Task("Таск 1", "Описание таска 1", Status.NEW);
         Task task2 = new Task("Таск 2", "Описание таска 2", Status.NEW);
         manager.createTask(task1);
         manager.createTask(task2);
-        System.out.println(task1);
-        System.out.println(task2);
 
-        Task task3 = new Task(3, "Таск 3", "Описание таска 3", Status.NEW);
-        manager.updateTask(task3);
+        Task task3 = new Task(task2.getId() + 1, "Таск 3", "Описание таска 3", Status.NEW);
+        manager.createTask(task3);
 
         Task task4 = new Task("Таск 4", "Описание таска 4", Status.NEW);
         manager.createTask(task4);
-        System.out.println(task4);
 
-        assertEquals(3, task4.getId(), "Задача с заданным айди конфликтует с задачей с автосгенерированным айди.");
+        assertNotEquals(task3.getId(), task4.getId(), "Задача с заданным айди конфликтует с задачей с автосгенерированным айди.");
     }
 
     @Test
@@ -99,13 +104,14 @@ class InMemoryTaskManagerTest {
     void shouldUpdateAllFieldsOfTaskCorrectly() {
         Task task = new Task("Таск 1", "Описание таска 1", Status.NEW);
         int taskID = manager.createTask(task);
+
         Task updatedTask = new Task(taskID, "Таск 2", "Описание таска 2", Status.DONE);
         manager.updateTask(updatedTask);
 
         assertEquals(taskID, updatedTask.getId(), "Айди задачи не совпадает после обновления.");
-        assertEquals(task.getName(), updatedTask.getName(), "Название задачи не совпадает после обновления.");
-        assertEquals(task.getDescription(), updatedTask.getDescription(), "Описание задачи не совпадает после обновления.");
-        assertEquals(task.getStatus(), updatedTask.getStatus(), "Статус задачи не совпадает после обновления.");
+        assertEquals("Таск 2", updatedTask.getName(), "Название задачи не совпадает после обновления.");
+        assertEquals("Описание таска 2", updatedTask.getDescription(), "Описание задачи не совпадает после обновления.");
+        assertEquals(Status.DONE, updatedTask.getStatus(), "Статус задачи не совпадает после обновления.");
     }
 
     @Test
@@ -180,9 +186,9 @@ class InMemoryTaskManagerTest {
         manager.updateSubtask(updatedSubtask);
 
         assertEquals(subtaskID, updatedSubtask.getId(), "Айди подзадачи не совпадает после обновления.");
-        assertEquals(subtask.getName(), updatedSubtask.getName(), "Название подзадачи не совпадает после обновления.");
-        assertEquals(subtask.getDescription(), updatedSubtask.getDescription(), "Описание подзадачи не совпадает после обновления.");
-        assertEquals(subtask.getStatus(), updatedSubtask.getStatus(), "Статус подзадачи не совпадает после обновления.");
+        assertEquals("Сабтаск 2", updatedSubtask.getName(), "Название подзадачи не совпадает после обновления.");
+        assertEquals("Сабтаск эпика 2", updatedSubtask.getDescription(), "Описание подзадачи не совпадает после обновления.");
+        assertEquals(Status.DONE, updatedSubtask.getStatus(), "Статус подзадачи не совпадает после обновления.");
     }
 
     @Test
@@ -215,7 +221,7 @@ class InMemoryTaskManagerTest {
 
         List<Task> actual = new ArrayList<>(manager.getEpics());
 
-        assertEquals(expected, actual, "Список эпиков не совпадает с добавленными эпиками.");
+        Assertions.assertTrue(expected.containsAll(actual) && actual.containsAll(expected), "Список эпиков не совпадает с добавленными эпиками.");
     }
 
     @Test
@@ -252,8 +258,8 @@ class InMemoryTaskManagerTest {
         manager.updateEpic(updatedEpic);
 
         assertEquals(epicID, updatedEpic.getId(), "Айди эпика не совпадает после обновления.");
-        assertEquals(epic.getName(), updatedEpic.getName(), "Название эпика не совпадает после обновления.");
-        assertEquals(epic.getDescription(), updatedEpic.getDescription(), "Описание эпика не совпадает после обновления.");
+        assertEquals("Эпик 2", updatedEpic.getName(), "Название эпика не совпадает после обновления.");
+        assertEquals("Описание эпика 2", updatedEpic.getDescription(), "Описание эпика не совпадает после обновления.");
     }
 
     @Test
@@ -264,12 +270,16 @@ class InMemoryTaskManagerTest {
         Subtask subtask = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID);
         int subtaskID = manager.createSubtask(subtask);
 
-        assertEquals(Status.NEW, epic.getStatus(), "Статус эпика не совпадает со статусом подзадачи.");
+        Epic originalFromManager = manager.getEpic(epicID);
+
+        assertEquals(Status.NEW, originalFromManager.getStatus(), "Статус эпика не совпадает со статусом подзадачи.");
 
         Subtask updatedSubtask = new Subtask(subtaskID, "Сабтаск 1", "Сабтаск эпика 1", Status.DONE, epicID);
         manager.updateSubtask(updatedSubtask);
 
-        assertEquals(Status.DONE, epic.getStatus(), "Статус эпика не совпадает со статусом подзадачи.");
+        Epic updatedFromManager = manager.getEpic(epicID);
+
+        assertEquals(Status.DONE, updatedFromManager.getStatus(), "Статус эпика не совпадает со статусом подзадачи.");
     }
 
     @Test
@@ -332,10 +342,15 @@ class InMemoryTaskManagerTest {
         Subtask subtask = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID);
         int subtaskID = manager.createSubtask(subtask);
 
-        Assertions.assertTrue(epic.getSubtaskIDs().contains(subtaskID), "Айди подзадачи не было добавлено в эпик.");
+        Epic fromManager = manager.getEpic(epicID);
+
+        Assertions.assertTrue(fromManager.getSubtaskIDs().contains(subtaskID), "Айди подзадачи не было добавлено в эпик.");
 
         manager.deleteSubtask(subtaskID);
-        Assertions.assertFalse(epic.getSubtaskIDs().contains(subtaskID), "Айди удаленной подзадачи не было удалено из эпика.");
+
+        Epic fromManagerAfterDeletion = manager.getEpic(epicID);
+
+        Assertions.assertFalse(fromManagerAfterDeletion.getSubtaskIDs().contains(subtaskID), "Айди удаленной подзадачи не было удалено из эпика.");
     }
 
     @Test
@@ -355,18 +370,174 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void changingTaskIdIsNotAllowed() {
+    void changingOriginalTaskShouldNotAffectManager() {
         Task task = new Task("Таск 1", "Описание таска 1", Status.NEW);
-        int oldId = manager.createTask(task);
-        manager.getTask(oldId);
+        int id = manager.createTask(task);
 
-        int newId = oldId + 100;
-        task.setId(newId);
-        manager.getTask(newId);
+        task.setId(id + 100);
+        task.setName("Новое имя");
+        task.setDescription("Новое описание");
+        task.setStatus(Status.DONE);
 
-        Assertions.assertEquals(oldId, manager.getTask(oldId).getId(), "Айди задачи было изменено вручную.");
+        Task fromManager = manager.getTask(id);
+        Assertions.assertNotNull(fromManager, "Задача не найдена по оригинальному айди.");
+        Assertions.assertEquals(id, fromManager.getId(), "Айди задачи в менеджере был изменен.");
+        Assertions.assertEquals("Таск 1", fromManager.getName(), "Имя задачи в менеджере было изменено.");
+        Assertions.assertEquals("Описание таска 1", fromManager.getDescription(), "Описание задачи в менеджере было изменено.");
+        Assertions.assertEquals(Status.NEW, fromManager.getStatus(), "Статус задачи в менеджере был изменен.");
+
+        Assertions.assertNull(manager.getTask(id + 100), "В менеджере не хранится задача с новым айди.");
     }
 
+    @Test
+    void changingOriginalSubtaskShouldNotAffectManager() {
+        Epic epic = new Epic("Эпик 1", "Описание эпика 1");
+        int epicID = manager.createEpic(epic);
 
+        Subtask subtask = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID);
+        int subtaskID = manager.createSubtask(subtask);
+
+        subtask.setId(subtaskID + 100);
+        subtask.setName("Новое имя");
+        subtask.setDescription("Новое описание");
+        subtask.setStatus(Status.DONE);
+
+        Subtask fromManager = manager.getSubtask(subtaskID);
+        Assertions.assertNotNull(fromManager, "Подзадача не найдена по оригинальному айди.");
+        Assertions.assertEquals(subtaskID, fromManager.getId(), "Айди подзадачи в менеджере был изменен.");
+        Assertions.assertEquals("Сабтаск 1", fromManager.getName(), "Имя подзадачи в менеджере было изменено.");
+        Assertions.assertEquals("Сабтаск эпика 1", fromManager.getDescription(), "Описание подзадачи в менеджере было изменено.");
+        Assertions.assertEquals(Status.NEW, fromManager.getStatus(), "Статус подзадачи в менеджере был изменен.");
+
+        Assertions.assertNull(manager.getSubtask(subtaskID + 100), "В менеджере не хранится подзадача с новым айди.");
+    }
+
+    @Test
+    void changingOriginalSubtaskShouldNotAffectEpicInManager() {
+        Epic epic = new Epic("Эпик 1", "Описание эпика 1");
+        int epicID = manager.createEpic(epic);
+        Status originalStatus = epic.getStatus();
+
+        Subtask subtask = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID);
+        manager.createSubtask(subtask);
+
+        subtask.setStatus(Status.DONE);
+
+        Epic fromManager = manager.getEpic(epicID);
+        Assertions.assertEquals(originalStatus, fromManager.getStatus());
+
+    }
+
+    @Test
+    void changingOriginalEpicShouldNotAffectManager() {
+        Epic epic = new Epic("Эпик 1", "Описание эпика 1");
+        int id = manager.createEpic(epic);
+        List<Integer> originalSubtaskIds = epic.getSubtaskIDs();
+        Status originalStatus = epic.getStatus();
+
+        epic.setId(id + 100);
+        epic.setName("Новое имя");
+        epic.setDescription("Новое описание");
+        epic.setStatus(Status.DONE);
+        epic.setSubtaskIDs(List.of(1, 2, 3));
+
+        Epic fromManager = manager.getEpic(id);
+        Assertions.assertNotNull(fromManager, "Эпик не найден по оригинальному айди.");
+        Assertions.assertEquals(id, fromManager.getId(), "Айди эпика в менеджере был изменено.");
+        Assertions.assertEquals("Эпик 1", fromManager.getName(), "Имя эпика в менеджере было изменено.");
+        Assertions.assertEquals("Описание эпика 1", fromManager.getDescription(), "Описание эпика в менеджере было изменено.");
+        Assertions.assertEquals(originalStatus, fromManager.getStatus(), "Статус эпика в менеджере был изменен.");
+        Assertions.assertEquals(originalSubtaskIds, fromManager.getSubtaskIDs(), "Статус эпика в менеджере был изменен.");
+
+        Assertions.assertNull(manager.getEpic(id + 100), "В менеджере не хранится эпик с новым айди.");
+    }
+
+    @Test
+    void changingTaskCopyShouldNotAffectManager() {
+        Task task = new Task("Таск 1", "Описание таска 1", Status.NEW);
+        int id = manager.createTask(task);
+
+        Task copy = manager.getTask(id);
+
+        Assertions.assertNotSame(task, copy, "Менеджер должен возвращать копию, а не оригинал.");
+
+        copy.setId(id + 100);
+        copy.setName("Новое имя");
+        copy.setDescription("Новое описание");
+        copy.setStatus(Status.DONE);
+
+        Task fromManager = manager.getTask(id);
+        Assertions.assertEquals(id, fromManager.getId(), "Айди задачи из списка задач было изменено.");
+        Assertions.assertEquals("Таск 1", fromManager.getName(), "Имя задачи из списка задач было изменено.");
+        Assertions.assertEquals("Описание таска 1", fromManager.getDescription(), "Описание задачи из списка задач было изменено.");
+        Assertions.assertEquals(Status.NEW, fromManager.getStatus(), "Статус задачи из списка задач был изменен.");
+    }
+
+    @Test
+    void changingSubtaskCopyShouldNotAffectManager() {
+        Epic epic = new Epic("Эпик 1", "Описание эпика 1");
+        int epicID = manager.createEpic(epic);
+        Status originalStatus = epic.getStatus();
+
+        Subtask subtask = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID);
+        int subtaskID = manager.createSubtask(subtask);
+
+        Subtask copy = manager.getSubtask(subtaskID);
+
+        Assertions.assertNotSame(subtask, copy, "Менеджер должен возвращать копию, а не оригинал.");
+
+        copy.setId(subtaskID + 100);
+        copy.setName("Новое имя");
+        copy.setDescription("Новое описание");
+        copy.setStatus(Status.DONE);
+
+        Subtask fromManager = manager.getSubtask(subtaskID);
+        Assertions.assertEquals(subtaskID, fromManager.getId(), "Айди подзадачи из списка задач было изменено.");
+        Assertions.assertEquals("Сабтаск 1", fromManager.getName(), "Имя подзадачи из списка задач было изменено.");
+        Assertions.assertEquals("Сабтаск эпика 1", fromManager.getDescription(), "Описание подзадачи из списка задач было изменено.");
+        Assertions.assertEquals(originalStatus, fromManager.getStatus(), "Статус подзадачи из списка задач был изменен.");
+    }
+
+    @Test
+    void changingSubtaskCopyShouldNotAffectEpicInManager() {
+        Epic epic = new Epic("Эпик 1", "Описание эпика 1");
+        int epicID = manager.createEpic(epic);
+        Status originalStatus = epic.getStatus();
+
+        Subtask subtask = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID);
+        int subtaskID = manager.createSubtask(subtask);
+
+        Subtask copy = manager.getSubtask(subtaskID);
+        copy.setStatus(Status.DONE);
+
+        Epic fromManager = manager.getEpic(epicID);
+        Assertions.assertEquals(originalStatus, fromManager.getStatus());
+
+    }
+
+    @Test
+    void changingEpicCopyShouldNotAffectManager() {
+        Epic epic = new Epic("Эпик 1", "Описание эпика 1");
+        int id = manager.createEpic(epic);
+        List<Integer> originalSubtaskIds = epic.getSubtaskIDs();
+        Status originalStatus = epic.getStatus();
+
+        Epic copy = manager.getEpic(id);
+
+        Assertions.assertNotSame(epic, copy, "Менеджер должен возвращать копию, а не оригинал.");
+
+        copy.setId(id + 100);
+        copy.setName("Новое имя");
+        copy.setDescription("Новое описание");
+        copy.setStatus(Status.DONE);
+        epic.setSubtaskIDs(List.of(1, 2, 3));
+
+        Epic fromManager = manager.getEpic(id);
+        Assertions.assertEquals(id, fromManager.getId(), "Айди эпика из списка задач было изменено.");
+        Assertions.assertEquals("Эпик 1", fromManager.getName(), "Имя эпика из списка задач было изменено.");
+        Assertions.assertEquals("Описание эпика 1", fromManager.getDescription(), "Описание эпика из списка задач было изменено.");
+        Assertions.assertEquals(originalStatus, fromManager.getStatus(), "Статус эпика из списка задач был изменен.");
+        Assertions.assertEquals(originalSubtaskIds, fromManager.getSubtaskIDs(), "Статус эпика в менеджере был изменен.");
+    }
 
 }

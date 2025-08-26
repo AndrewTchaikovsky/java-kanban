@@ -22,8 +22,10 @@ public class InMemoryHistoryManager implements HistoryManager {
         }
 
         public Task getTask() {
-            return task;
+            return task.copy();
         }
+
+
     }
 
     private final Map<Integer, Node> taskHistory;
