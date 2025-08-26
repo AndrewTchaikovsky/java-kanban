@@ -86,8 +86,8 @@ public class Main {
             }
         }
         System.out.println("Подзадачи:");
-        for (Task Subtask : manager.getSubtasks()) {
-            System.out.println(Subtask);
+        for (Task subtask : manager.getSubtasks()) {
+            System.out.println(subtask);
         }
 
         System.out.println("История:");
