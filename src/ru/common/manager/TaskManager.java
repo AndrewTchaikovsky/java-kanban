@@ -5,7 +5,6 @@ import ru.common.model.Status;
 import ru.common.model.Subtask;
 import ru.common.model.Task;
 
-import java.util.Collection;
 import java.util.List;
 
 public interface TaskManager {
@@ -32,9 +31,9 @@ public interface TaskManager {
 
     Subtask getSubtask(Integer id);
 
-    int createSubtask(Subtask Subtask);
+    int createSubtask(Subtask subtask);
 
-    void updateSubtask(Subtask Subtask);
+    void updateSubtask(Subtask subtask);
 
     void deleteSubtask(Integer id);
 
