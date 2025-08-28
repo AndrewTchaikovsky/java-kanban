@@ -46,7 +46,7 @@ public class InMemoryTaskManager implements TaskManager {
             return null;
         }
         historyManager.add(task);
-        return task.copy();
+        return task;
     }
 
     @Override
@@ -56,16 +56,17 @@ public class InMemoryTaskManager implements TaskManager {
         }
         task.setId(id);
         id++;
-        Task copy = task.copy();
-        tasks.put(copy.getId(), copy);
-        return copy.getId();
+        tasks.put(task.getId(), task);
+        return task.getId();
     }
 
     @Override
     public void updateTask(Task task) {
         if (tasks.containsKey(task.getId())) {
-            Task copy = task.copy();
-            tasks.put(copy.getId(), copy);
+            Task originalTask = tasks.get(task.getId());
+            originalTask.setName(task.getName());
+            originalTask.setDescription(task.getDescription());
+            originalTask.setStatus(task.getStatus());
         } else {
             System.out.println("Такой задачи не существует.");
         }
@@ -129,7 +130,7 @@ public class InMemoryTaskManager implements TaskManager {
             return null;
         }
         historyManager.add(subtask);
-        return subtask.copy();
+        return subtask;
     }
 
     @Override
@@ -143,22 +144,23 @@ public class InMemoryTaskManager implements TaskManager {
             System.out.println("У подзадачи и эпика не может быть одинакового айди.");
             return 0;
         }
-        Subtask copy = subtask.copy();
-        subtasks.put(copy.getId(), copy);
-        getEpicInternal(copy.getEpicID()).getSubtaskIDs().add(copy.getId());
-        Status epicStatus = calculateEpicStatus(getEpicInternal(copy.getEpicID()));
-        getEpicInternal(copy.getEpicID()).setStatus(epicStatus);
-        return copy.getId();
+        subtasks.put(subtask.getId(), subtask);
+        getEpicInternal(subtask.getEpicID()).getSubtaskIDs().add(subtask.getId());
+        Status epicStatus = calculateEpicStatus(getEpicInternal(subtask.getEpicID()));
+        getEpicInternal(subtask.getEpicID()).setStatus(epicStatus);
+        return subtask.getId();
     }
 
     @Override
-    public void updateSubtask(Subtask subtask) {
-        if (subtasks.containsKey(subtask.getId())) {
-            Subtask copy = subtask.copy();
-            subtasks.put(copy.getId(), copy);
-            Epic epic = getEpicInternal(copy.getEpicID());
-            Status epicStatus = calculateEpicStatus(epic);
-            epic.setStatus(epicStatus);
+    public void updateSubtask(Subtask Subtask) {
+        if (subtasks.containsKey(Subtask.getId())) {
+            Subtask originalSubtask = subtasks.get(Subtask.getId());
+            originalSubtask.setName(Subtask.getName());
+            originalSubtask.setDescription(Subtask.getDescription());
+            originalSubtask.setStatus(Subtask.getStatus());
+            Status epicStatus = calculateEpicStatus(getEpic(Subtask.getEpicID()));
+            getEpic(Subtask.getEpicID()).setStatus(epicStatus);
+
         } else {
             System.out.println("Такой подзадачи не существует.");
         }
@@ -203,7 +205,7 @@ public class InMemoryTaskManager implements TaskManager {
             return null;
         }
         historyManager.add(epic);
-        return epic.copy();
+        return epic;
     }
 
     private Epic getEpicInternal(int id) {
@@ -221,18 +223,18 @@ public class InMemoryTaskManager implements TaskManager {
         }
         epic.setId(id);
         id++;
-        Epic copy = new Epic(epic.getId(), epic.getName(), epic.getDescription());
-        copy.setStatus(epic.getStatus());
-        copy.setSubtaskIDs(new ArrayList<>(epic.getSubtaskIDs()));
-        epics.put(copy.getId(), copy);
-        return copy.getId();
+        epic.setStatus(epic.getStatus());
+        epic.setSubtaskIDs(new ArrayList<>(epic.getSubtaskIDs()));
+        epics.put(epic.getId(), epic);
+        return epic.getId();
     }
 
     @Override
     public void updateEpic(Epic epic) {
         if (epics.containsKey(epic.getId())) {
-            Epic copy = epic.copy();
-            epics.put(copy.getId(), copy);
+            Epic originalEpic = epics.get(epic.getId());
+            originalEpic.setName(epic.getName());
+            originalEpic.setDescription(epic.getDescription());
         } else {
             System.out.println("Такого эпика не существует.");
         }

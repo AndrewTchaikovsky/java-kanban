@@ -22,7 +22,7 @@ public class InMemoryHistoryManager implements HistoryManager {
         }
 
         public Task getTask() {
-            return task.copy();
+            return task;
         }
 
 
@@ -100,5 +100,12 @@ public class InMemoryHistoryManager implements HistoryManager {
     public List<Task> getHistory() {
         return getTasks();
     }
+
+    public void clearHistory() {
+        taskHistory.clear();
+        head = null;
+        tail = null;
+    }
+
 
 }

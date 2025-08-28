@@ -29,7 +29,7 @@ class InMemoryHistoryManagerTest {
         manager.deleteTasks();
         manager.deleteSubtasks();
         manager.deleteEpics();
-        historyManager.getHistory().clear();
+        historyManager.clearHistory();
     }
 
     @Test
@@ -89,185 +89,86 @@ class InMemoryHistoryManagerTest {
         Assertions.assertTrue(historyManager.getHistory().isEmpty(), "Задача не была удалена из истории.");
     }
 
-
     @Test
-    void changingTaskCopyShouldNotAffectHistoryManager() {
+    void changingTaskShouldChangeDataInBothManagers() {
         Task task = new Task("Таск 1", "Описание таска 1", Status.NEW);
         int id = manager.createTask(task);
 
-        manager.getTask(id);
-
-        Task copy = historyManager.getHistory().get(0);
-
-        Assertions.assertNotSame(task, copy, "Менеджер должен возвращать копию, а не оригинал.");
-
-        copy.setId(id + 100);
-        copy.setName("Новое имя");
-        copy.setDescription("Новое описание");
-        copy.setStatus(Status.DONE);
-
+        Task fromManager = manager.getTask(id);
         Task fromHistory = historyManager.getHistory().get(0);
-        Assertions.assertEquals(id, fromHistory.getId(), "Айди задачи из истории было изменено.");
-        Assertions.assertEquals("Таск 1", fromHistory.getName(), "Имя задачи из истории было изменено.");
-        Assertions.assertEquals("Описание таска 1", fromHistory.getDescription(), "Описание задачи из истории было изменено.");
-        Assertions.assertEquals(Status.NEW, fromHistory.getStatus(), "Статус задачи из истории был изменен.");
 
-        historyManager.remove(id);
-
-        Assertions.assertTrue(historyManager.getHistory().isEmpty(), "Задача не была удалена по своему айди.");
-    }
-
-    @Test
-    void changingSubtaskCopyShouldNotAffectHistoryManager() {
-        Epic epic = new Epic("Эпик 1", "Описание эпика 1");
-        int epicID = manager.createEpic(epic);
-
-        Subtask subtask = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID);
-        int subtaskID = manager.createSubtask(subtask);
-
-        manager.getSubtask(subtaskID);
-
-        Subtask copy = (Subtask) historyManager.getHistory().get(0);
-
-        Assertions.assertNotSame(subtask, copy, "Менеджер должен возвращать копию, а не оригинал.");
-
-        copy.setId(subtaskID + 100);
-        copy.setName("Новое имя");
-        copy.setDescription("Новое описание");
-        copy.setStatus(Status.DONE);
-
-        Subtask fromHistory = (Subtask) historyManager.getHistory().get(0);
-        Assertions.assertEquals(subtaskID, fromHistory.getId(), "Айди подзадачи из истории было изменено.");
-        Assertions.assertEquals("Сабтаск 1", fromHistory.getName(), "Имя подзадачи из истории было изменено.");
-        Assertions.assertEquals("Сабтаск эпика 1", fromHistory.getDescription(), "Описание подзадачи из истории было изменено.");
-        Assertions.assertEquals(Status.NEW, fromHistory.getStatus(), "Статус подзадачи из истории был изменен.");
-
-        historyManager.remove(subtaskID);
-
-        Assertions.assertTrue(historyManager.getHistory().isEmpty(), "Задача не была удалена по своему айди.");
-    }
-
-    @Test
-    void changingSubtaskCopyShouldNotAffectEpicInHistoryManager() {
-        Epic epic = new Epic("Эпик 1", "Описание эпика 1");
-        int epicID = manager.createEpic(epic);
-        Status originalStatus = epic.getStatus();
-
-        Subtask subtask = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID);
-        int subtaskID = manager.createSubtask(subtask);
-
-        manager.getSubtask(subtaskID);
-        manager.getEpic(epicID);
-
-        Subtask copy = (Subtask) historyManager.getHistory().get(1);
-        copy.setStatus(Status.DONE);
-
-        Epic fromHistory = (Epic) historyManager.getHistory().get(0);
-        Assertions.assertEquals(originalStatus, fromHistory.getStatus());
-
-    }
-
-    @Test
-    void changingEpicCopyShouldNotAffectHistoryManager() {
-        Epic epic = new Epic("Эпик 1", "Описание эпика 1");
-        int id = manager.createEpic(epic);
-        List<Integer> originalSubtaskIds = epic.getSubtaskIDs();
-        Status originalStatus = epic.getStatus();
-
-        manager.getEpic(id);
-
-        Epic copy = (Epic) historyManager.getHistory().get(0);
-
-        Assertions.assertNotSame(epic, copy, "Менеджер должен возвращать копию, а не оригинал.");
-
-        copy.setId(id + 100);
-        copy.setName("Новое имя");
-        copy.setDescription("Новое описание");
-        copy.setStatus(Status.DONE);
-        epic.setSubtaskIDs(List.of(1, 2, 3));
-
-        Epic fromHistory = (Epic) historyManager.getHistory().get(0);
-        Assertions.assertEquals(id, fromHistory.getId(), "Айди эпика из истории было изменено.");
-        Assertions.assertEquals("Эпик 1", fromHistory.getName(), "Имя эпика из истории было изменено.");
-        Assertions.assertEquals("Описание эпика 1", fromHistory.getDescription(), "Описание эпика из истории было изменено.");
-        Assertions.assertEquals(originalStatus, fromHistory.getStatus(), "Статус эпика из истории был изменен.");
-        Assertions.assertEquals(originalSubtaskIds, fromHistory.getSubtaskIDs(), "Статус эпика из истории был изменен.");
-
-        historyManager.remove(id);
-
-        Assertions.assertTrue(historyManager.getHistory().isEmpty(), "Эпик не был удален по своему айди.");
-    }
-
-    @Test
-    void changingOriginalTaskShouldNotAffectHistoryManager() {
-        Task task = new Task("Таск 1", "Описание таска 1", Status.NEW);
-        int id = manager.createTask(task);
-
-        manager.getTask(id);
+        Assertions.assertEquals(task, fromManager, "Менеджер задач возвращает задачу отличную от оригинальной");
+        Assertions.assertEquals(task, fromHistory, "Менеджер истории возвращает задачу отличную от оригинальной");
 
         task.setId(id + 100);
         task.setName("Новое имя");
         task.setDescription("Новое описание");
         task.setStatus(Status.DONE);
 
-        Task fromHistory = historyManager.getHistory().get(0);
-        Assertions.assertEquals(id, fromHistory.getId(), "Айди задачи из истории было изменено.");
-        Assertions.assertEquals("Таск 1", fromHistory.getName(), "Имя задачи из истории было изменено.");
-        Assertions.assertEquals("Описание таска 1", fromHistory.getDescription(), "Описание задачи из истории было изменено.");
-        Assertions.assertEquals(Status.NEW, fromHistory.getStatus(), "Статус задачи из истории был изменен.");
+        Assertions.assertEquals(fromManager.getId(), fromHistory.getId(), "Айди задачи из менеджера задач и менеджера истории не совпадают.");
+        Assertions.assertEquals(fromManager.getName(), fromHistory.getName(), "Имя задачи из менеджера задач и менеджера истории не совпадают.");
+        Assertions.assertEquals(fromManager.getDescription(), fromHistory.getDescription(), "Описание задачи из менеджера задач и менеджера истории не совпадают.");
+        Assertions.assertEquals(fromManager.getStatus(), fromHistory.getStatus(), "Статус задачи из менеджера задач и менеджера истории не совпадают.");
 
     }
 
     @Test
-    void changingOriginalSubtaskShouldNotAffectHistoryManager() {
+    void changingSubtaskShouldChangeDataInBothManagers() {
         Epic epic = new Epic("Эпик 1", "Описание эпика 1");
         int epicID = manager.createEpic(epic);
 
         Subtask subtask = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID);
         int subtaskID = manager.createSubtask(subtask);
 
-        manager.getSubtask(subtaskID);
+        Subtask fromManager = manager.getSubtask(subtaskID);
+        Task fromHistory = historyManager.getHistory().get(0);
+
+        Assertions.assertEquals(subtask, fromManager, "Менеджер задач возвращает подзадачу отличную от оригинальной");
+        Assertions.assertEquals(subtask, fromHistory, "Менеджер истории возвращает подзадачу отличную от оригинальной");
 
         subtask.setId(subtaskID + 100);
         subtask.setName("Новое имя");
         subtask.setDescription("Новое описание");
         subtask.setStatus(Status.DONE);
 
-        Task fromHistory = historyManager.getHistory().get(0);
-        Assertions.assertEquals(subtaskID, fromHistory.getId(), "Айди подзадачи из истории было изменено.");
-        Assertions.assertEquals("Сабтаск 1", fromHistory.getName(), "Имя подзадачи из истории было изменено.");
-        Assertions.assertEquals("Сабтаск эпика 1", fromHistory.getDescription(), "Описание подзадачи из истории было изменено.");
-        Assertions.assertEquals(Status.NEW, fromHistory.getStatus(), "Статус подзадачи из истории был изменен.");
+        Assertions.assertEquals(fromManager.getId(), fromHistory.getId(), "Айди подзадачи из менеджера задач и менеджера истории не совпадают.");
+        Assertions.assertEquals(fromManager.getName(), fromHistory.getName(), "Имя подзадачи из менеджера задач и менеджера истории не совпадают.");
+        Assertions.assertEquals(fromManager.getDescription(), fromHistory.getDescription(), "Описание подзадачи из менеджера задач и менеджера истории не совпадают.");
+        Assertions.assertEquals(fromManager.getStatus(), fromHistory.getStatus(), "Статус подзадачи из менеджера задач и менеджера истории не совпадают.");
 
     }
 
     @Test
-    void changingOriginalSubtaskShouldNotAffectEpicInHistoryManager() {
+    void changingSubtaskShouldChangeEpicInBothManagers() {
         Epic epic = new Epic("Эпик 1", "Описание эпика 1");
         int epicID = manager.createEpic(epic);
-        Status originalStatus = epic.getStatus();
 
         Subtask subtask = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID);
         int subtaskID = manager.createSubtask(subtask);
 
         manager.getSubtask(subtaskID);
-        manager.getEpic(epicID);
+        Epic epicFromManager = manager.getEpic(epicID);
+        Epic epicFromHistory = (Epic) historyManager.getHistory().get(0);
+
+        Assertions.assertEquals(epic, epicFromManager, "Менеджер задач возвращает эпик отличный от оригинального");
+        Assertions.assertEquals(epic, epicFromHistory, "Менеджер истории возвращает эпик отличный от оригинального");
 
         subtask.setStatus(Status.DONE);
 
-        Epic fromHistory = (Epic) historyManager.getHistory().get(0);
-        Assertions.assertEquals(originalStatus, fromHistory.getStatus());
+        Assertions.assertEquals(epicFromManager.getStatus(), epicFromHistory.getStatus(), "Статус эпика из менеджера задач и менеджера истории не совпадают.");
 
     }
 
     @Test
-    void changingOriginalEpicShouldNotAffectHistoryManager() {
+    void changingEpicShouldChangeDataInBothManagers() {
         Epic epic = new Epic("Эпик 1", "Описание эпика 1");
         int id = manager.createEpic(epic);
-        List<Integer> originalSubtaskIds = epic.getSubtaskIDs();
-        Status originalStatus = epic.getStatus();
 
-        manager.getEpic(id);
+        Epic fromManager = manager.getEpic(id);
+        Epic fromHistory = (Epic) historyManager.getHistory().get(0);
+
+        Assertions.assertEquals(epic, fromManager, "Менеджер задач возвращает эпик отличный от оригинального");
+        Assertions.assertEquals(epic, fromHistory, "Менеджер истории возвращает эпик отличный от оригинального");
 
         epic.setId(id + 100);
         epic.setName("Новое имя");
@@ -275,12 +176,11 @@ class InMemoryHistoryManagerTest {
         epic.setStatus(Status.DONE);
         epic.setSubtaskIDs(List.of(1, 2, 3));
 
-        Epic fromHistory = (Epic) historyManager.getHistory().get(0);
-        Assertions.assertEquals(id, fromHistory.getId(), "Айди эпика из истории было изменено.");
-        Assertions.assertEquals("Эпик 1", fromHistory.getName(), "Имя эпика из истории было изменено.");
-        Assertions.assertEquals("Описание эпика 1", fromHistory.getDescription(), "Описание эпика из истории было изменено.");
-        Assertions.assertEquals(Status.NEW, fromHistory.getStatus(), "Статус эпика из истории был изменен.");
-        Assertions.assertEquals(originalSubtaskIds, fromHistory.getSubtaskIDs(), "Статус эпика из истории был изменен.");
+        Assertions.assertEquals(fromManager.getId(), fromHistory.getId(), "Айди эпика из менеджера задач и менеджера истории не совпадают.");
+        Assertions.assertEquals(fromManager.getName(), fromHistory.getName(), "Имя эпика из менеджера задач и менеджера истории не совпадают.");
+        Assertions.assertEquals(fromManager.getDescription(), fromHistory.getDescription(), "Описание эпика из менеджера задач и менеджера истории не совпадают.");
+        Assertions.assertEquals(fromManager.getStatus(), fromHistory.getStatus(), "Статус эпика из менеджера задач и менеджера истории не совпадают.");
+        Assertions.assertEquals(fromManager.getSubtaskIDs(), fromHistory.getSubtaskIDs(), "Список айди подзадач эпика из менеджера задач и менеджера истории не совпадают.");
 
     }
 
