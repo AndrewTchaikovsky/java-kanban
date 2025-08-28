@@ -152,14 +152,14 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void updateSubtask(Subtask Subtask) {
-        if (subtasks.containsKey(Subtask.getId())) {
-            Subtask originalSubtask = subtasks.get(Subtask.getId());
-            originalSubtask.setName(Subtask.getName());
-            originalSubtask.setDescription(Subtask.getDescription());
-            originalSubtask.setStatus(Subtask.getStatus());
-            Status epicStatus = calculateEpicStatus(getEpic(Subtask.getEpicID()));
-            getEpic(Subtask.getEpicID()).setStatus(epicStatus);
+    public void updateSubtask(Subtask subtask) {
+        if (subtasks.containsKey(subtask.getId())) {
+            Subtask originalSubtask = subtasks.get(subtask.getId());
+            originalSubtask.setName(subtask.getName());
+            originalSubtask.setDescription(subtask.getDescription());
+            originalSubtask.setStatus(subtask.getStatus());
+            Status epicStatus = calculateEpicStatus(getEpic(subtask.getEpicID()));
+            getEpic(subtask.getEpicID()).setStatus(epicStatus);
 
         } else {
             System.out.println("Такой подзадачи не существует.");
