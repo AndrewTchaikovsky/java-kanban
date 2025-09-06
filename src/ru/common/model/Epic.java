@@ -18,13 +18,7 @@ public class Epic extends Task {
 
     @Override
     public String toString() {
-        return "ru.common.model.Epic{" +
-                "subtaskIDs=" + subtaskIDs +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", id=" + id +
-                ", status=" + status +
-                '}';
+        return getId() + "," + TaskTypes.EPIC + "," + getName() + "," + getStatus() + "," + getDescription();
     }
 
     public void setSubtaskIDs(List<Integer> subtaskIDs) {

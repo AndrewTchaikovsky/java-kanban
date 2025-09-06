@@ -35,12 +35,7 @@ public class Task {
 
     @Override
     public String toString() {
-        return "ru.common.model.Task{" +
-                "name='" + getName() + '\'' +
-                ", description='" + getDescription() + '\'' +
-                ", id=" + getId() +
-                ", status=" + getStatus() +
-                '}';
+        return getId() + "," + TaskTypes.TASK + "," + getName() + "," + getStatus() + "," + getDescription();
     }
 
     public String getName() {

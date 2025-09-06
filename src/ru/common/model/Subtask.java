@@ -15,13 +15,7 @@ public class Subtask extends Task {
 
     @Override
     public String toString() {
-        return "ru.common.model.SubTask{" +
-                "epicID=" + epicID +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", id=" + id +
-                ", status=" + status +
-                '}';
+        return getId() + "," + TaskTypes.SUBTASK + "," + getName() + "," + getStatus() + "," + getDescription() + "," + getEpicID();
     }
 
     public int getEpicID() {
