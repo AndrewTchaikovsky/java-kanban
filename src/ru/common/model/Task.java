@@ -30,7 +30,7 @@ public class Task {
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, description, id, status);
+        return Objects.hash(id);
     }
 
     @Override
@@ -74,4 +74,5 @@ public class Task {
     public void setStatus(Status status) {
         this.status = status;
     }
+
 }

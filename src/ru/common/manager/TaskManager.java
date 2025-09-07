@@ -5,12 +5,11 @@ import ru.common.model.Status;
 import ru.common.model.Subtask;
 import ru.common.model.Task;
 
-import java.util.Collection;
 import java.util.List;
 
 public interface TaskManager {
 
-    Collection<Task> getTasks();
+    List<Task> getTasks();
 
     void deleteTasks();
 
@@ -22,7 +21,7 @@ public interface TaskManager {
 
     void deleteTask(Integer id);
 
-    Collection<Subtask> getSubtasks();
+    List<Subtask> getSubtasks();
 
     List<Integer> getSubtaskIDs();
 
@@ -32,13 +31,13 @@ public interface TaskManager {
 
     Subtask getSubtask(Integer id);
 
-    int createSubtask(Subtask Subtask);
+    int createSubtask(Subtask subtask);
 
-    void updateSubtask(Subtask Subtask);
+    void updateSubtask(Subtask subtask);
 
     void deleteSubtask(Integer id);
 
-    Collection<Epic> getEpics();
+    List<Epic> getEpics();
 
     void deleteEpics();
 

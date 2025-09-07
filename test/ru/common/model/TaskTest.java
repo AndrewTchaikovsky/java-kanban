@@ -1,23 +1,19 @@
 package ru.common.model;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import ru.common.manager.HistoryManager;
 import ru.common.manager.InMemoryTaskManager;
 import ru.common.manager.Managers;
 import ru.common.manager.TaskManager;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class TaskTest {
     private static TaskManager manager;
-    private static HistoryManager historyManager;
 
     @BeforeAll
     static void setUp() {
         manager = Managers.getDefault();
-        historyManager = Managers.getDefaultHistory();
     }
 
     @Test

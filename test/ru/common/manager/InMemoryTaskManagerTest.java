@@ -1,6 +1,8 @@
 package ru.common.manager;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.common.model.Epic;
 import ru.common.model.Status;
@@ -14,12 +16,17 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class InMemoryTaskManagerTest {
     private static TaskManager manager;
-    private static HistoryManager historyManager;
 
     @BeforeAll
     static void setUp() {
         manager = Managers.getDefault();
-        historyManager = Managers.getDefaultHistory();
+    }
+
+    @BeforeEach
+    void beforeEachTest() {
+        manager.deleteTasks();
+        manager.deleteSubtasks();
+        manager.deleteEpics();
     }
 
     @Test
@@ -53,22 +60,19 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void shouldNotConflictWithManuallySetIDOnUpdate() {
+    void shouldNotConflictWithManuallySetID() {
         Task task1 = new Task("Таск 1", "Описание таска 1", Status.NEW);
         Task task2 = new Task("Таск 2", "Описание таска 2", Status.NEW);
         manager.createTask(task1);
         manager.createTask(task2);
-        System.out.println(task1);
-        System.out.println(task2);
 
-        Task task3 = new Task(3, "Таск 3", "Описание таска 3", Status.NEW);
-        manager.updateTask(task3);
+        Task task3 = new Task(task2.getId() + 1, "Таск 3", "Описание таска 3", Status.NEW);
+        manager.createTask(task3);
 
         Task task4 = new Task("Таск 4", "Описание таска 4", Status.NEW);
         manager.createTask(task4);
-        System.out.println(task4);
 
-        assertEquals(3, task4.getId(), "Задача с заданным айди конфликтует с задачей с автосгенерированным айди.");
+        assertNotEquals(task3.getId(), task4.getId(), "Задача с заданным айди конфликтует с задачей с автосгенерированным айди.");
     }
 
     @Test
@@ -100,13 +104,14 @@ class InMemoryTaskManagerTest {
     void shouldUpdateAllFieldsOfTaskCorrectly() {
         Task task = new Task("Таск 1", "Описание таска 1", Status.NEW);
         int taskID = manager.createTask(task);
+
         Task updatedTask = new Task(taskID, "Таск 2", "Описание таска 2", Status.DONE);
         manager.updateTask(updatedTask);
 
         assertEquals(taskID, updatedTask.getId(), "Айди задачи не совпадает после обновления.");
-        assertEquals(task.getName(), updatedTask.getName(), "Название задачи не совпадает после обновления.");
-        assertEquals(task.getDescription(), updatedTask.getDescription(), "Описание задачи не совпадает после обновления.");
-        assertEquals(task.getStatus(), updatedTask.getStatus(), "Статус задачи не совпадает после обновления.");
+        assertEquals("Таск 2", updatedTask.getName(), "Название задачи не совпадает после обновления.");
+        assertEquals("Описание таска 2", updatedTask.getDescription(), "Описание задачи не совпадает после обновления.");
+        assertEquals(Status.DONE, updatedTask.getStatus(), "Статус задачи не совпадает после обновления.");
     }
 
     @Test
@@ -181,9 +186,9 @@ class InMemoryTaskManagerTest {
         manager.updateSubtask(updatedSubtask);
 
         assertEquals(subtaskID, updatedSubtask.getId(), "Айди подзадачи не совпадает после обновления.");
-        assertEquals(subtask.getName(), updatedSubtask.getName(), "Название подзадачи не совпадает после обновления.");
-        assertEquals(subtask.getDescription(), updatedSubtask.getDescription(), "Описание подзадачи не совпадает после обновления.");
-        assertEquals(subtask.getStatus(), updatedSubtask.getStatus(), "Статус подзадачи не совпадает после обновления.");
+        assertEquals("Сабтаск 2", updatedSubtask.getName(), "Название подзадачи не совпадает после обновления.");
+        assertEquals("Сабтаск эпика 2", updatedSubtask.getDescription(), "Описание подзадачи не совпадает после обновления.");
+        assertEquals(Status.DONE, updatedSubtask.getStatus(), "Статус подзадачи не совпадает после обновления.");
     }
 
     @Test
@@ -216,7 +221,7 @@ class InMemoryTaskManagerTest {
 
         List<Task> actual = new ArrayList<>(manager.getEpics());
 
-        assertEquals(expected, actual, "Список эпиков не совпадает с добавленными эпиками.");
+        Assertions.assertTrue(expected.containsAll(actual) && actual.containsAll(expected), "Список эпиков не совпадает с добавленными эпиками.");
     }
 
     @Test
@@ -253,8 +258,8 @@ class InMemoryTaskManagerTest {
         manager.updateEpic(updatedEpic);
 
         assertEquals(epicID, updatedEpic.getId(), "Айди эпика не совпадает после обновления.");
-        assertEquals(epic.getName(), updatedEpic.getName(), "Название эпика не совпадает после обновления.");
-        assertEquals(epic.getDescription(), updatedEpic.getDescription(), "Описание эпика не совпадает после обновления.");
+        assertEquals("Эпик 2", updatedEpic.getName(), "Название эпика не совпадает после обновления.");
+        assertEquals("Описание эпика 2", updatedEpic.getDescription(), "Описание эпика не совпадает после обновления.");
     }
 
     @Test
@@ -265,12 +270,16 @@ class InMemoryTaskManagerTest {
         Subtask subtask = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID);
         int subtaskID = manager.createSubtask(subtask);
 
-        assertEquals(Status.NEW, epic.getStatus(), "Статус эпика не совпадает со статусом подзадачи.");
+        Epic originalFromManager = manager.getEpic(epicID);
+
+        assertEquals(Status.NEW, originalFromManager.getStatus(), "Статус эпика не совпадает со статусом подзадачи.");
 
         Subtask updatedSubtask = new Subtask(subtaskID, "Сабтаск 1", "Сабтаск эпика 1", Status.DONE, epicID);
         manager.updateSubtask(updatedSubtask);
 
-        assertEquals(Status.DONE, epic.getStatus(), "Статус эпика не совпадает со статусом подзадачи.");
+        Epic updatedFromManager = manager.getEpic(epicID);
+
+        assertEquals(Status.DONE, updatedFromManager.getStatus(), "Статус эпика не совпадает со статусом подзадачи.");
     }
 
     @Test
@@ -311,5 +320,52 @@ class InMemoryTaskManagerTest {
         assertEquals(expected, actual, "Список подзадач эпика не совпадает с добавленными в этот эпик подзадачами.");
     }
 
+    @Test
+    void deletedSubtasksShouldBeRemovedFromTheMap() {
+        Epic epic = new Epic("Эпик 1", "Описание эпика 1");
+        int epicID = manager.createEpic(epic);
 
+        Subtask subtask = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID);
+        int subtaskID = manager.createSubtask(subtask);
+
+        Assertions.assertNotNull(manager.getSubtask(subtaskID), "Подзадача не была добавлена.");
+
+        manager.deleteSubtask(subtaskID);
+        Assertions.assertNull(manager.getSubtask(subtaskID), "Подзадача не была удалена.");
+    }
+
+    @Test
+    void epicShouldNotContainDeletedSubtasksIds() {
+        Epic epic = new Epic("Эпик 1", "Описание эпика 1");
+        int epicID = manager.createEpic(epic);
+
+        Subtask subtask = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID);
+        int subtaskID = manager.createSubtask(subtask);
+
+        Epic fromManager = manager.getEpic(epicID);
+
+        Assertions.assertTrue(fromManager.getSubtaskIDs().contains(subtaskID), "Айди подзадачи не было добавлено в эпик.");
+
+        manager.deleteSubtask(subtaskID);
+
+        Epic fromManagerAfterDeletion = manager.getEpic(epicID);
+
+        Assertions.assertFalse(fromManagerAfterDeletion.getSubtaskIDs().contains(subtaskID), "Айди удаленной подзадачи не было удалено из эпика.");
+    }
+
+    @Test
+    void historyManagerShouldNotKeepDeletedSubtasks() {
+        Epic epic = new Epic("Эпик 1", "Описание эпика 1");
+        int epicID = manager.createEpic(epic);
+
+        Subtask subtask = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID);
+        int subtaskID = manager.createSubtask(subtask);
+
+        manager.getSubtask(subtaskID);
+        Assertions.assertTrue(manager.getHistoryManager().getHistory().contains(subtask));
+
+        manager.deleteSubtask(subtaskID);
+        Assertions.assertFalse(manager.getHistoryManager().getHistory().contains(subtask));
+
+    }
 }
