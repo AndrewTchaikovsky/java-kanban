@@ -2,18 +2,55 @@ package ru.common.manager;
 
 import ru.common.model.*;
 
-import java.nio.file.Path;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 
 public class FileBackedTaskManager extends InMemoryTaskManager implements TaskManager  {
-    Path path;
+    File file;
 
-    public FileBackedTaskManager(Path path) {
+    public FileBackedTaskManager(File file) {
         super();
-        this.path = path;
+        this.file = file;
     }
 
     private void save() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            writer.write("id,type,name,status,description,epic");
+            writer.newLine();
+
+            for (Task task : tasks.values()) {
+                writer.write(task.toString());
+                writer.newLine();
+            }
+
+            for (Subtask subtask : subtasks.values()) {
+                writer.write(subtask.toString());
+                writer.newLine();
+            }
+
+            for (Epic epic : epics.values()) {
+                writer.write(epic.toString());
+                writer.newLine();
+            }
+
+        } catch (IOException e) {
+            throw new ManagerSaveException("Can't save to file " + file.getName(), e);
+        }
+
+
+    }
+
+    private static FileBackedTaskManager loadFromFile(File file) {
+        FileBackedTaskManager manager = new FileBackedTaskManager(file);
+
+
+        String csv = Files.readString(file.toPath());
+
+
 
     }
 

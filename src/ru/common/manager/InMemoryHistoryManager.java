@@ -107,5 +107,4 @@ public class InMemoryHistoryManager implements HistoryManager {
         tail = null;
     }
 
-
 }
