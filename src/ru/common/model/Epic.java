@@ -18,7 +18,7 @@ public class Epic extends Task {
 
     @Override
     public String toString() {
-        return getId() + "," + TaskTypes.EPIC + "," + getName() + "," + getStatus() + "," + getDescription();
+        return getId() + "," + TaskType.EPIC + "," + getName() + "," + getStatus() + "," + getDescription();
     }
 
     public void setSubtaskIDs(List<Integer> subtaskIDs) {

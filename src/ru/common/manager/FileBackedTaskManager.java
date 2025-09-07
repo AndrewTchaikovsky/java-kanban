@@ -175,15 +175,38 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
         return historyManager;
     }
 
-    Task fromString(String value) {
+    public Task fromString(String value) {
         String[] split = value.split(",");
         int id = Integer.parseInt(split[0]);
-        TaskType type = (split[1]);
+        TaskType type;
+        if (split[1].equals("TASK")) {
+            type = TaskType.TASK;
+        } else if (split[1].equals("SUBTASK")) {
+            type = TaskType.SUBTASK;
+        } else {
+            type = TaskType.EPIC;
+        }
         String name = split[2];
-         String description;
-
-         Status status;
-        return new Task(id, split[2], split[4], split[3]);
+        Status status;
+        if (split[3].equals("NEW")) {
+            status = Status.NEW;
+        } else if (split[3].equals("IN_PROGRESS")) {
+            status = Status.IN_PROGRESS;
+        } else {
+            status = Status.DONE;
+        }
+        String description = split[4];
+        int epicID = 0;
+        if (split[4] != null) {
+            epicID = Integer.parseInt(split[4]);
+        }
+        if (type.equals(TaskType.TASK)) {
+            return new Task(id, name, description, status);
+        } else if (type.equals(TaskType.SUBTASK)) {
+            return new Subtask(id, name, description, status, epicID);
+        } else {
+            return new Epic(id, name, description);
+        }
 
     }
 

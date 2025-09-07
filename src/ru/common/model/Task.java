@@ -35,7 +35,7 @@ public class Task {
 
     @Override
     public String toString() {
-        return getId() + "," + TaskTypes.TASK + "," + getName() + "," + getStatus() + "," + getDescription();
+        return getId() + "," + TaskType.TASK + "," + getName() + "," + getStatus() + "," + getDescription();
     }
 
     public String getName() {
