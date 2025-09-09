@@ -26,7 +26,8 @@ public class FileBackedTaskManagerTest {
     }
 
     @BeforeEach
-    void beforeEachTest() {
+    void beforeEachTest() throws IOException {
+        tempFile = File.createTempFile("tempFile", ".csv");
         manager.deleteTasks();
         manager.deleteSubtasks();
         manager.deleteEpics();
@@ -47,7 +48,7 @@ public class FileBackedTaskManagerTest {
     }
 
     @Test
-    void shouldCorrectlySaveTasksToFile() throws IOException {
+    void shouldCorrectlySaveAndLoadTasksToFile() throws IOException {
         Task task1 = new Task("Таск 1", "Описание таска 1", Status.NEW);
         Task task2 = new Task("Таск 2", "Описание таска 2", Status.NEW);
         int task1ID = manager.createTask(task1);
@@ -67,23 +68,35 @@ public class FileBackedTaskManagerTest {
 
         manager.getTask(task1ID);
         manager.getTask(task2ID);
+        manager.getEpic(epic1ID);
+        manager.getEpic(epic2ID);
         manager.getSubtask(subtask1ID);
         manager.getSubtask(subtask2ID);
         manager.getSubtask(subtask3ID);
-        manager.getEpic(epic1ID);
-        manager.getEpic(epic2ID);
 
         System.out.println(Files.readString(tempFile.toPath()));
 
         FileBackedTaskManager newManager = FileBackedTaskManager.loadFromFile(tempFile);
 
-
         Assertions.assertEquals(manager.getTasks(), newManager.getTasks());
-        // ASSERT THE REST
+        Assertions.assertEquals(manager.getSubtasks(), newManager.getSubtasks());
+        Assertions.assertEquals(manager.getEpics(), newManager.getEpics());
+        Assertions.assertEquals(manager.getHistoryManager().getHistory(), newManager.getHistoryManager().getHistory());
 
     }
 
+    @Test
+    void shouldNotLoadFromEmptyFile() throws IOException {
+        FileBackedTaskManager.loadFromFile(tempFile);
 
+        System.out.println(Files.readString(tempFile.toPath()));
+
+        Assertions.assertTrue(manager.getTasks().isEmpty());
+        Assertions.assertTrue(manager.getSubtasks().isEmpty());
+        Assertions.assertTrue(manager.getEpics().isEmpty());
+        Assertions.assertTrue(manager.getHistoryManager().getHistory().isEmpty());
+
+    }
 
 
 }

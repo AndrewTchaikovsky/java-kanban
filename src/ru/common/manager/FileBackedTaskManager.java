@@ -18,6 +18,63 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
         this.file = file;
     }
 
+    public static void main(String[] args) {
+
+        FileBackedTaskManager manager = new FileBackedTaskManager(new File("resources/file.csv"));
+
+        Task task1 = new Task("Таск 1", "Описание таска 1", Status.NEW);
+        Task task2 = new Task("Таск 2", "Описание таска 2", Status.NEW);
+        int task1ID = manager.createTask(task1);
+        int task2ID = manager.createTask(task2);
+
+        Epic epic1 = new Epic("Эпик 1", "Эпик с 3 подзадачами");
+        Epic epic2 = new Epic("Эпик 2", "Эпика без подзадач");
+        int epic1ID = manager.createEpic(epic1);
+        int epic2ID = manager.createEpic(epic2);
+
+        Subtask subtask1 = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epic1.getId());
+        Subtask subtask2 = new Subtask("Сабтаск 2", "Сабтаск эпика 1", Status.NEW, epic1.getId());
+        Subtask subtask3 = new Subtask("Сабтаск 3", "Сабтаск эпика 1", Status.NEW, epic1.getId());
+        int subtask1ID = manager.createSubtask(subtask1);
+        int subtask2ID = manager.createSubtask(subtask2);
+        int subtask3ID = manager.createSubtask(subtask3);
+
+        manager.getTask(task1ID);
+        manager.getTask(task2ID);
+        manager.getEpic(epic1ID);
+        manager.getEpic(epic2ID);
+        manager.getSubtask(subtask1ID);
+        manager.getSubtask(subtask2ID);
+        manager.getSubtask(subtask3ID);
+
+        FileBackedTaskManager newManager = FileBackedTaskManager.loadFromFile(new File("resources/file.csv"));
+
+        if (manager.getTasks().equals(newManager.getTasks())) {
+            System.out.println("Задачи совпадают.");
+        } else {
+            System.out.println("Задачи не совпадают.");
+        }
+
+        if (manager.getSubtasks().equals(newManager.getSubtasks())) {
+            System.out.println("Подзадачи совпадают.");
+        } else {
+            System.out.println("Подзадачи не совпадают.");
+        }
+
+        if (manager.getEpics().equals(newManager.getEpics())) {
+            System.out.println("Эпики совпадают.");
+        } else {
+            System.out.println("Эпики не совпадают.");
+        }
+
+        if (manager.getHistoryManager().getHistory().equals(newManager.getHistoryManager().getHistory())) {
+            System.out.println("История совпадает.");
+        } else {
+            System.out.println("История не совпадает.");
+        }
+
+    }
+
     public void save() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
             writer.write("id,type,name,status,description,epic");
@@ -28,13 +85,13 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
                 writer.newLine();
             }
 
-            for (Subtask subtask : subtasks.values()) {
-                writer.write(subtask.toString());
+            for (Epic epic : epics.values()) {
+                writer.write(epic.toString());
                 writer.newLine();
             }
 
-            for (Epic epic : epics.values()) {
-                writer.write(epic.toString());
+            for (Subtask subtask : subtasks.values()) {
+                writer.write(subtask.toString());
                 writer.newLine();
             }
 
@@ -56,7 +113,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
             String csv = Files.readString(file.toPath());
             String[] lines = csv.split(System.lineSeparator());
 
-            int maxId = 0;
+            int maxId = 1;
             List<Integer> history = new ArrayList<>();
 
             for (int i = 1; i < lines.length; i++) {
@@ -94,8 +151,10 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
                 epic.getSubtaskIDs().add(subtask.getId());
             }
 
-            for (int taskId : history) {
-                manager.getHistoryManager().add(manager.getTask(taskId));
+            for (int id : history) {
+                manager.getHistoryManager().add(manager.getTask(id));
+                manager.getHistoryManager().add(manager.getSubtask(id));
+                manager.getHistoryManager().add(manager.getEpic(id));
             }
 
             manager.id = maxId;
