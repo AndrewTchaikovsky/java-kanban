@@ -9,16 +9,18 @@ public class Epic extends Task {
     public Epic(String name, String description) {
         super(name, description, Status.NEW);
         subtaskIDs = new ArrayList<>();
+        this.type = TaskType.EPIC;
     }
 
     public Epic(int id, String name, String description) {
         super(id, name, description, Status.NEW);
         subtaskIDs = new ArrayList<>();
+        this.type = TaskType.EPIC;
     }
 
     @Override
     public String toString() {
-        return getId() + "," + TaskType.EPIC + "," + getName() + "," + getStatus() + "," + getDescription();
+        return getId() + "," + getType() + "," + getName() + "," + getStatus() + "," + getDescription();
     }
 
     public void setSubtaskIDs(List<Integer> subtaskIDs) {

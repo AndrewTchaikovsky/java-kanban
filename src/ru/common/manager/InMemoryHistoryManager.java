@@ -25,7 +25,6 @@ public class InMemoryHistoryManager implements HistoryManager {
             return task;
         }
 
-
     }
 
     private final Map<Integer, Node> taskHistory;
@@ -34,6 +33,20 @@ public class InMemoryHistoryManager implements HistoryManager {
 
     public InMemoryHistoryManager() {
         this.taskHistory = new HashMap<>();
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        Node current = head;
+        while (current != null) {
+            sb.append(current.getTask().getId());
+            current = current.next;
+            if (current != null) {
+                sb.append(",");
+            }
+        }
+        return sb.toString();
     }
 
     public List<Task> getTasks() {
