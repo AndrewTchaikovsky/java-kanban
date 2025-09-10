@@ -10,7 +10,9 @@ import ru.common.model.Subtask;
 import ru.common.model.Task;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -132,11 +134,11 @@ class InMemoryTaskManagerTest {
         manager.createTask(task1);
         manager.createTask(task2);
 
-        List<Task> expected = new ArrayList<>();
+        Set<Task> expected = new HashSet<>();
         expected.add(task1);
         expected.add(task2);
 
-        List<Task> actual = new ArrayList<>(manager.getTasks());
+        Set<Task> actual = new HashSet<>(manager.getTasks());
 
         assertEquals(expected, actual, "Список задач не совпадает с добавленными задачами.");
     }
