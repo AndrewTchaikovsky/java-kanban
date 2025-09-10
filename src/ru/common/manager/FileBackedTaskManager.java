@@ -113,10 +113,11 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
             String csv = Files.readString(file.toPath());
             String[] lines = csv.split(System.lineSeparator());
 
-            int maxId = 1;
+            int maxId = 0;
             List<Integer> history = new ArrayList<>();
 
             for (int i = 1; i < lines.length; i++) {
+
                 if (lines[i].isEmpty()) {
                     String[] iDs = lines[i + 1].split(",");
                     for (int j = 0; j < iDs.length; j++) {
@@ -157,7 +158,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
                 manager.getHistoryManager().add(manager.getEpic(id));
             }
 
-            manager.id = maxId;
+            manager.id = maxId + 1;
 
         } catch (IOException e) {
             throw new ManagerSaveException("Can't load file " + file.getName(), e);

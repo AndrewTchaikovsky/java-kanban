@@ -1,7 +1,6 @@
 package ru.common.manager;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.common.model.Epic;
@@ -18,20 +17,11 @@ public class FileBackedTaskManagerTest {
     private static HistoryManager historyManager;
     private static File tempFile;
 
-    @BeforeAll
-    static void setUp() throws IOException {
-        tempFile = File.createTempFile("tempFile", ".csv");
-        manager = (FileBackedTaskManager) Managers.getDefault(tempFile);
-        historyManager = manager.getHistoryManager();
-    }
-
     @BeforeEach
     void beforeEachTest() throws IOException {
         tempFile = File.createTempFile("tempFile", ".csv");
-        manager.deleteTasks();
-        manager.deleteSubtasks();
-        manager.deleteEpics();
-        historyManager.clearHistory();
+        manager = (FileBackedTaskManager) Managers.getDefault(tempFile);
+        historyManager = manager.getHistoryManager();
     }
 
     @Test
@@ -40,11 +30,11 @@ public class FileBackedTaskManagerTest {
 
         FileBackedTaskManager newManager = FileBackedTaskManager.loadFromFile(tempFile);
 
-        Assertions.assertTrue(newManager.getTasks().isEmpty());
-        Assertions.assertTrue(newManager.getSubtasks().isEmpty());
-        Assertions.assertTrue(newManager.getEpics().isEmpty());
-        Assertions.assertTrue(newManager.getHistoryManager().getHistory().isEmpty());
-        Assertions.assertEquals(1, FileBackedTaskManager.id);
+        Assertions.assertTrue(newManager.getTasks().isEmpty(), "Задачи не пустые.");
+        Assertions.assertTrue(newManager.getSubtasks().isEmpty(), "Подзадачи не пустые.");
+        Assertions.assertTrue(newManager.getEpics().isEmpty(), "Эпики не пустые.");
+        Assertions.assertTrue(newManager.getHistoryManager().getHistory().isEmpty(), "История не пустая.");
+        Assertions.assertEquals(1, FileBackedTaskManager.id, "Айди начинается не с единицы.");
     }
 
     @Test
@@ -78,23 +68,96 @@ public class FileBackedTaskManagerTest {
 
         FileBackedTaskManager newManager = FileBackedTaskManager.loadFromFile(tempFile);
 
-        Assertions.assertEquals(manager.getTasks(), newManager.getTasks());
-        Assertions.assertEquals(manager.getSubtasks(), newManager.getSubtasks());
-        Assertions.assertEquals(manager.getEpics(), newManager.getEpics());
-        Assertions.assertEquals(manager.getHistoryManager().getHistory(), newManager.getHistoryManager().getHistory());
+        Assertions.assertEquals(manager.getTasks(), newManager.getTasks(), "Задачи в восстановленном менеджере не пустые.");
+        Assertions.assertEquals(manager.getSubtasks(), newManager.getSubtasks(), "Подзадачи в восстановленном менеджере не пустые.");
+        Assertions.assertEquals(manager.getEpics(), newManager.getEpics(), "Эпики в восстановленном менеджере не пустые.");
+        Assertions.assertEquals(manager.getHistoryManager().getHistory(), newManager.getHistoryManager().getHistory(), "История в восстановленном менеджере не пустая.");
 
     }
 
     @Test
     void shouldNotLoadFromEmptyFile() throws IOException {
-        FileBackedTaskManager.loadFromFile(tempFile);
+        File emptyFile = File.createTempFile("tempFile", ".csv");
+        FileBackedTaskManager.loadFromFile(emptyFile);
+
+        System.out.println(Files.readString(emptyFile.toPath()));
+
+        Assertions.assertTrue(manager.getTasks().isEmpty(), "Задачи не пустые.");
+        Assertions.assertTrue(manager.getSubtasks().isEmpty(), "Подзадачи не пустые.");
+        Assertions.assertTrue(manager.getEpics().isEmpty(), "Эпики не пустые.");
+        Assertions.assertTrue(manager.getHistoryManager().getHistory().isEmpty(), "История не пустая.");
+        Assertions.assertEquals(1, FileBackedTaskManager.id, "Айди начинается не с единицы.");
+
+    }
+
+    @Test
+    void iDMustStayConsistent() throws IOException {
+        Task task1 = new Task("Таск 1", "Описание таска 1", Status.NEW);
+        manager.createTask(task1);
+
+        Epic epic1 = new Epic("Эпик 1", "Эпик с 3 подзадачами");
+        manager.createEpic(epic1);
+
+        Subtask subtask1 = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epic1.getId());
+        int subtask1ID = manager.createSubtask(subtask1);
 
         System.out.println(Files.readString(tempFile.toPath()));
 
-        Assertions.assertTrue(manager.getTasks().isEmpty());
-        Assertions.assertTrue(manager.getSubtasks().isEmpty());
-        Assertions.assertTrue(manager.getEpics().isEmpty());
-        Assertions.assertTrue(manager.getHistoryManager().getHistory().isEmpty());
+        FileBackedTaskManager newManager = FileBackedTaskManager.loadFromFile(tempFile);
+
+        Task task2 = new Task("Таск 2", "Описание таска 2", Status.NEW);
+        int task2ID = newManager.createTask(task2);
+
+        Epic epic2 = new Epic("Эпик 2", "Эпика без подзадач");
+        int epic2ID = newManager.createEpic(epic2);
+
+        Subtask subtask2 = new Subtask("Сабтаск 2", "Сабтаск эпика 1", Status.NEW, epic1.getId());
+        int subtask2ID = newManager.createSubtask(subtask2);
+
+        Assertions.assertEquals(subtask1ID + 1, task2ID, "Айди задачи не последовательный");
+        Assertions.assertEquals(subtask1ID + 2, epic2ID, "Айди подзадачи не последовательный");
+        Assertions.assertEquals(subtask1ID + 3, subtask2ID, "Айди эпика не последовательный");
+    }
+
+    @Test
+    void shouldLoadEmptyManagerWhenTasksAreDeleted() throws IOException {
+        Task task1 = new Task("Таск 1", "Описание таска 1", Status.NEW);
+        int task1ID = manager.createTask(task1);
+
+        Epic epic1 = new Epic("Эпик 1", "Эпик с 3 подзадачами");
+        int epic1ID = manager.createEpic(epic1);
+
+        Subtask subtask1 = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epic1.getId());
+        int subtask1ID = manager.createSubtask(subtask1);
+
+        manager.getTask(task1ID);
+        manager.getEpic(epic1ID);
+        manager.getSubtask(subtask1ID);
+
+        System.out.println(Files.readString(tempFile.toPath()));
+
+        manager.deleteTasks();
+        manager.deleteEpics();
+        manager.deleteSubtasks();
+
+        FileBackedTaskManager newManager = FileBackedTaskManager.loadFromFile(tempFile);
+
+        Assertions.assertTrue(newManager.getTasks().isEmpty(), "Задачи не пустые.");
+        Assertions.assertTrue(newManager.getSubtasks().isEmpty(), "Подзадачи не пустые.");
+        Assertions.assertTrue(newManager.getEpics().isEmpty(), "Эпики не пустые.");
+        Assertions.assertTrue(newManager.getHistoryManager().getHistory().isEmpty(), "История не пустая.");
+        Assertions.assertEquals(1, FileBackedTaskManager.id, "Айди начинается не с единицы.");
+    }
+
+    @Test
+    void invalidFileShouldThrowException() {
+
+        try {
+            FileBackedTaskManager.loadFromFile(new File(""));
+            Assertions.fail("ManagerSaveException не было брошено.");
+        } catch (ManagerSaveException e) {
+            Assertions.assertTrue(e.getMessage().contains("Can't load file"));
+        }
 
     }
 
