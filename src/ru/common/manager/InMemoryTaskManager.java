@@ -5,15 +5,16 @@ import ru.common.model.Status;
 import ru.common.model.Subtask;
 import ru.common.model.Task;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.IntStream;
 
 public class InMemoryTaskManager implements TaskManager {
     public static int id = 1;
     protected HashMap<Integer, Task> tasks;
     protected HashMap<Integer, Epic> epics;
     protected HashMap<Integer, Subtask> subtasks;
+    protected Set<Task> prioritizedTasks = new TreeSet<>(Comparator.comparing(Task::getStartTime));
     protected HistoryManager historyManager;
 
 
@@ -57,7 +58,25 @@ public class InMemoryTaskManager implements TaskManager {
         task.setId(id);
         id++;
         tasks.put(task.getId(), task);
+        add(task);
         return task.getId();
+    }
+
+    private void add(Task task) {
+        prioritizedTasks.stream()
+                .filter(existingTask -> overlap(task, existingTask))
+                .findFirst()
+                .ifPresentOrElse(
+                        overlappedTask -> {
+                            String message = "Задача пересекается с задачей с id=" + overlappedTask.getId() + " с датой начала в " + overlappedTask.getStartTime() + " и датой окончания в " + overlappedTask.getEndTime();
+                            throw new TaskValidationException(message);
+                        },
+                        () -> prioritizedTasks.add(task)
+                );
+    }
+
+    private void delete(Task task) {
+        prioritizedTasks.remove(task);
     }
 
     @Override
@@ -309,6 +328,30 @@ public class InMemoryTaskManager implements TaskManager {
 
     public HistoryManager getHistoryManager() {
         return historyManager;
+    }
+
+    private boolean overlap(Task task1, Task task2) {
+        LocalDateTime start1 = task1.getStartTime();
+        LocalDateTime end1 = task1.getEndTime();
+
+        LocalDateTime start2 = task2.getStartTime();
+        LocalDateTime end2 = task2.getEndTime();
+
+        return !(start1.isAfter(end2) || start2.isAfter(end1));
+    }
+
+    public boolean hasOverlappingTasks() {
+        List<Task> tasks = prioritizedTasks.stream()
+                .toList();
+
+        if (tasks.size() < 2) return false;
+
+        return IntStream.range(0, tasks.size() - 1)
+                .anyMatch(i -> {
+                    Task currentTask = tasks.get(i);
+                    Task nextTask = tasks.get(i + 1);
+                    return currentTask.getEndTime().isAfter(nextTask.getStartTime());
+                });
     }
 
 }
