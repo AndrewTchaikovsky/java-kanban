@@ -5,9 +5,7 @@ import ru.common.model.Status;
 import ru.common.model.Subtask;
 import ru.common.model.Task;
 
-import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.IntStream;
 
 public class InMemoryTaskManager implements TaskManager {
     public static int id = 1;
@@ -126,7 +124,7 @@ public class InMemoryTaskManager implements TaskManager {
                 historyManager.remove(id);
             }
 
-        } );
+        });
 
         epic.getSubtaskIDs().clear();
         Status epicStatus = calculateEpicStatus(epic);
@@ -138,7 +136,7 @@ public class InMemoryTaskManager implements TaskManager {
         new ArrayList<>(subtasks.values()).forEach(subtask -> {
             historyManager.remove(subtask.getId());
             delete(subtask);
-                });
+        });
 
         subtasks.clear();
 
