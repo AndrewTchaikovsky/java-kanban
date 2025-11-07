@@ -6,14 +6,16 @@ import ru.common.model.Status;
 import ru.common.model.Subtask;
 import ru.common.model.Task;
 
+import java.time.Duration;
+
 public class Main {
 
     public static void main(String[] args) {
         TaskManager manager = Managers.getDefault();
         HistoryManager historyManager = manager.getHistoryManager();
 
-        Task task1 = new Task("Таск 1", "Описание таска 1", Status.NEW);
-        Task task2 = new Task("Таск 2", "Описание таска 2", Status.NEW);
+        Task task1 = new Task("Таск 1", "Описание таска 1", Status.NEW, null, Duration.ZERO);
+        Task task2 = new Task("Таск 2", "Описание таска 2", Status.NEW, null, Duration.ZERO);
         int task1ID = manager.createTask(task1);
         int task2ID = manager.createTask(task2);
 
@@ -22,9 +24,9 @@ public class Main {
         int epic1ID = manager.createEpic(epic1);
         int epic2ID = manager.createEpic(epic2);
 
-        Subtask subtask1 = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epic1.getId());
-        Subtask subtask2 = new Subtask("Сабтаск 2", "Сабтаск эпика 1", Status.NEW, epic1.getId());
-        Subtask subtask3 = new Subtask("Сабтаск 3", "Сабтаск эпика 1", Status.NEW, epic1.getId());
+        Subtask subtask1 = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epic1.getId(), null, Duration.ZERO);
+        Subtask subtask2 = new Subtask("Сабтаск 2", "Сабтаск эпика 1", Status.NEW, epic1.getId(), null, Duration.ZERO);
+        Subtask subtask3 = new Subtask("Сабтаск 3", "Сабтаск эпика 1", Status.NEW, epic1.getId(), null, Duration.ZERO);
         int subtask1ID = manager.createSubtask(subtask1);
         int subtask2ID = manager.createSubtask(subtask2);
         int subtask3ID = manager.createSubtask(subtask3);

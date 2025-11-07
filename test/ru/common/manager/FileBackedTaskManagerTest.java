@@ -11,17 +11,26 @@ import ru.common.model.Task;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.Duration;
+import java.time.LocalDateTime;
 
-public class FileBackedTaskManagerTest {
-    private static FileBackedTaskManager manager;
-    private static HistoryManager historyManager;
-    private static File tempFile;
+public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
+    private FileBackedTaskManager manager;
+    private HistoryManager historyManager;
+    private File tempFile;
 
     @BeforeEach
     void beforeEachTest() throws IOException {
         tempFile = File.createTempFile("tempFile", ".csv");
         manager = (FileBackedTaskManager) Managers.getDefault(tempFile);
         historyManager = manager.getHistoryManager();
+    }
+
+    @Override
+    protected FileBackedTaskManager createManager() throws IOException {
+        tempFile = File.createTempFile("tempFile", ".csv");
+        manager = (FileBackedTaskManager) Managers.getDefault(tempFile);
+        return manager;
     }
 
     @Test
@@ -39,8 +48,8 @@ public class FileBackedTaskManagerTest {
 
     @Test
     void shouldCorrectlySaveAndLoadTasksToFile() throws IOException {
-        Task task1 = new Task("Таск 1", "Описание таска 1", Status.NEW);
-        Task task2 = new Task("Таск 2", "Описание таска 2", Status.NEW);
+        Task task1 = new Task("Таск 1", "Описание таска 1", Status.NEW, LocalDateTime.now(), Duration.ZERO);
+        Task task2 = new Task("Таск 2", "Описание таска 2", Status.NEW, LocalDateTime.now(), Duration.ZERO);
         int task1ID = manager.createTask(task1);
         int task2ID = manager.createTask(task2);
 
@@ -49,9 +58,9 @@ public class FileBackedTaskManagerTest {
         int epic1ID = manager.createEpic(epic1);
         int epic2ID = manager.createEpic(epic2);
 
-        Subtask subtask1 = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epic1.getId());
-        Subtask subtask2 = new Subtask("Сабтаск 2", "Сабтаск эпика 1", Status.NEW, epic1.getId());
-        Subtask subtask3 = new Subtask("Сабтаск 3", "Сабтаск эпика 1", Status.NEW, epic1.getId());
+        Subtask subtask1 = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epic1.getId(), LocalDateTime.now(), Duration.ZERO);
+        Subtask subtask2 = new Subtask("Сабтаск 2", "Сабтаск эпика 1", Status.NEW, epic1.getId(), LocalDateTime.now(), Duration.ZERO);
+        Subtask subtask3 = new Subtask("Сабтаск 3", "Сабтаск эпика 1", Status.NEW, epic1.getId(), LocalDateTime.now(), Duration.ZERO);
         int subtask1ID = manager.createSubtask(subtask1);
         int subtask2ID = manager.createSubtask(subtask2);
         int subtask3ID = manager.createSubtask(subtask3);
@@ -92,26 +101,26 @@ public class FileBackedTaskManagerTest {
 
     @Test
     void iDMustStayConsistent() throws IOException {
-        Task task1 = new Task("Таск 1", "Описание таска 1", Status.NEW);
+        Task task1 = new Task("Таск 1", "Описание таска 1", Status.NEW, LocalDateTime.now(), Duration.ZERO);
         manager.createTask(task1);
 
         Epic epic1 = new Epic("Эпик 1", "Эпик с 3 подзадачами");
         manager.createEpic(epic1);
 
-        Subtask subtask1 = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epic1.getId());
+        Subtask subtask1 = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epic1.getId(), LocalDateTime.now(), Duration.ZERO);
         int subtask1ID = manager.createSubtask(subtask1);
 
         System.out.println(Files.readString(tempFile.toPath()));
 
         FileBackedTaskManager newManager = FileBackedTaskManager.loadFromFile(tempFile);
 
-        Task task2 = new Task("Таск 2", "Описание таска 2", Status.NEW);
+        Task task2 = new Task("Таск 2", "Описание таска 2", Status.NEW, LocalDateTime.now(), Duration.ZERO);
         int task2ID = newManager.createTask(task2);
 
         Epic epic2 = new Epic("Эпик 2", "Эпика без подзадач");
         int epic2ID = newManager.createEpic(epic2);
 
-        Subtask subtask2 = new Subtask("Сабтаск 2", "Сабтаск эпика 1", Status.NEW, epic1.getId());
+        Subtask subtask2 = new Subtask("Сабтаск 2", "Сабтаск эпика 1", Status.NEW, epic1.getId(), LocalDateTime.now(), Duration.ZERO);
         int subtask2ID = newManager.createSubtask(subtask2);
 
         Assertions.assertEquals(subtask1ID + 1, task2ID, "Айди задачи не последовательный");
@@ -121,13 +130,13 @@ public class FileBackedTaskManagerTest {
 
     @Test
     void shouldLoadEmptyManagerWhenTasksAreDeleted() throws IOException {
-        Task task1 = new Task("Таск 1", "Описание таска 1", Status.NEW);
+        Task task1 = new Task("Таск 1", "Описание таска 1", Status.NEW, LocalDateTime.now(), Duration.ZERO);
         int task1ID = manager.createTask(task1);
 
         Epic epic1 = new Epic("Эпик 1", "Эпик с 3 подзадачами");
         int epic1ID = manager.createEpic(epic1);
 
-        Subtask subtask1 = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epic1.getId());
+        Subtask subtask1 = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epic1.getId(), LocalDateTime.now(), Duration.ZERO);
         int subtask1ID = manager.createSubtask(subtask1);
 
         manager.getTask(task1ID);
@@ -161,5 +170,18 @@ public class FileBackedTaskManagerTest {
 
     }
 
+    @Test
+    void shouldSaveAndLoadStartTimeAndDuration() {
+        Task task = new Task("Таск 1", "Описание таска 1", Status.NEW,
+                LocalDateTime.of(2025, 10, 28, 10, 0),
+                Duration.ofMinutes(90));
 
+        manager.createTask(task);
+        FileBackedTaskManager loaded = FileBackedTaskManager.loadFromFile(tempFile);
+
+        Task loadedTask = loaded.getTask(task.getId());
+
+        Assertions.assertEquals(task.getStartTime(), loadedTask.getStartTime());
+        Assertions.assertEquals(task.getDuration(), loadedTask.getDuration());
+    }
 }

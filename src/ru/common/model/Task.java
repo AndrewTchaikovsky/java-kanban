@@ -32,6 +32,9 @@ public class Task {
     }
 
     public LocalDateTime getEndTime() {
+        if (startTime == null || duration == null) {
+            return null;
+        }
         return startTime.plusMinutes(duration.toMinutes());
     }
 
@@ -49,7 +52,16 @@ public class Task {
 
     @Override
     public String toString() {
-        return getId() + "," + getType() + "," + getName() + "," + getStatus() + "," + getDescription();
+        String start = "null";
+        if (startTime != null) {
+            start = startTime.toString();
+        }
+
+        String durationString = "0";
+        if (duration != null) {
+            durationString = String.valueOf(duration.toMinutes());
+        }
+        return getId() + "," + getType() + "," + getName() + "," + getStatus() + "," + getDescription() + "," + start + "," + durationString + ",";
     }
 
     public String getName() {
@@ -95,4 +107,13 @@ public class Task {
     public Duration getDuration() {
         return duration;
     }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public void setDuration(Duration duration) {
+        this.duration = duration;
+    }
+
 }

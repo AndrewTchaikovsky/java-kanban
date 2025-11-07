@@ -6,6 +6,8 @@ import ru.common.manager.InMemoryTaskManager;
 import ru.common.manager.Managers;
 import ru.common.manager.TaskManager;
 
+import java.time.Duration;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class TaskTest {
@@ -18,9 +20,9 @@ class TaskTest {
 
     @Test
     void taskObjectsAreEqualIftheirIDsAreEqual() {
-        Task task1 = new Task("Таск 1", "Описание таска 1", Status.NEW);
+        Task task1 = new Task("Таск 1", "Описание таска 1", Status.NEW, null, Duration.ZERO);
         int task1ID = manager.createTask(task1);
-        Task task2 = new Task("Таск 2", "Описание таска 2", Status.IN_PROGRESS);
+        Task task2 = new Task("Таск 2", "Описание таска 2", Status.IN_PROGRESS, null, Duration.ZERO);
         InMemoryTaskManager.id = task1ID;
         manager.createTask(task2);
         System.out.println(task1);

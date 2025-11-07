@@ -20,7 +20,16 @@ public class Subtask extends Task {
 
     @Override
     public String toString() {
-        return getId() + "," + getType() + "," + getName() + "," + getStatus() + "," + getDescription() + "," + getEpicID();
+        String start = "null";
+        if (startTime != null) {
+            start = startTime.toString();
+        }
+
+        String durationString = "0";
+        if (duration != null) {
+            durationString = String.valueOf(duration.toMinutes());
+        }
+        return getId() + "," + getType() + "," + getName() + "," + getStatus() + "," + getDescription() + "," + start + "," + durationString + "," + getEpicID();
     }
 
     public int getEpicID() {

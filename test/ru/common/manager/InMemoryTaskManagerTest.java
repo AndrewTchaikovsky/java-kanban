@@ -9,6 +9,10 @@ import ru.common.model.Status;
 import ru.common.model.Subtask;
 import ru.common.model.Task;
 
+import java.io.File;
+import java.io.IOException;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -16,24 +20,26 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class InMemoryTaskManagerTest {
-    private static TaskManager manager;
-
-    @BeforeAll
-    static void setUp() {
-        manager = Managers.getDefault();
-    }
+class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
+    private InMemoryTaskManager manager;
 
     @BeforeEach
-    void beforeEachTest() {
+    public void beforeEachTest() {
+        manager = (InMemoryTaskManager) Managers.getDefault();
         manager.deleteTasks();
         manager.deleteSubtasks();
         manager.deleteEpics();
     }
 
+    @Override
+    protected InMemoryTaskManager createManager() throws IOException {
+        manager = (InMemoryTaskManager) Managers.getDefault();
+        return manager;
+    }
+
     @Test
     void shouldCreateTaskAndFindIt() {
-        Task task1 = new Task("Таск 1", "Описание таска 1", Status.NEW);
+        Task task1 = new Task("Таск 1", "Описание таска 1", Status.NEW, LocalDateTime.now(), Duration.ZERO);
         int taskID = manager.createTask(task1);
 
         assertNotNull(task1, "Задача должна быть создана.");
@@ -54,7 +60,7 @@ class InMemoryTaskManagerTest {
         Epic epic1 = new Epic("Эпик 1", "Описание эпика 1");
         manager.createEpic(epic1);
 
-        Subtask subtask1 = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epic1.getId());
+        Subtask subtask1 = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epic1.getId(), LocalDateTime.now(), Duration.ZERO);
         int subtaskID = manager.createSubtask(subtask1);
 
         assertNotNull(subtask1, "Подзадача должна быть создана.");
@@ -63,15 +69,15 @@ class InMemoryTaskManagerTest {
 
     @Test
     void shouldNotConflictWithManuallySetID() {
-        Task task1 = new Task("Таск 1", "Описание таска 1", Status.NEW);
-        Task task2 = new Task("Таск 2", "Описание таска 2", Status.NEW);
+        Task task1 = new Task("Таск 1", "Описание таска 1", Status.NEW, LocalDateTime.now(), Duration.ZERO);
+        Task task2 = new Task("Таск 2", "Описание таска 2", Status.NEW, LocalDateTime.now(), Duration.ZERO);
         manager.createTask(task1);
         manager.createTask(task2);
 
-        Task task3 = new Task(task2.getId() + 1, "Таск 3", "Описание таска 3", Status.NEW);
+        Task task3 = new Task(task2.getId() + 1, "Таск 3", "Описание таска 3", Status.NEW, LocalDateTime.now(), Duration.ZERO);
         manager.createTask(task3);
 
-        Task task4 = new Task("Таск 4", "Описание таска 4", Status.NEW);
+        Task task4 = new Task("Таск 4", "Описание таска 4", Status.NEW, LocalDateTime.now(), Duration.ZERO);
         manager.createTask(task4);
 
         assertNotEquals(task3.getId(), task4.getId(), "Задача с заданным айди конфликтует с задачей с автосгенерированным айди.");
@@ -79,7 +85,7 @@ class InMemoryTaskManagerTest {
 
     @Test
     void taskFieldsShouldNotChangeWhenTaskIsCreated() {
-        Task task = new Task("Таск 1", "Описание таска 1", Status.NEW);
+        Task task = new Task("Таск 1", "Описание таска 1", Status.NEW, LocalDateTime.now(), Duration.ZERO);
         int taskID = manager.createTask(task);
         Task retrievedTask = manager.getTask(taskID);
 
@@ -90,8 +96,8 @@ class InMemoryTaskManagerTest {
 
     @Test
     void shouldDeleteAllTasks() {
-        Task task1 = new Task("Таск 1", "Описание таска 1", Status.NEW);
-        Task task2 = new Task("Таск 2", "Описание таска 2", Status.NEW);
+        Task task1 = new Task("Таск 1", "Описание таска 1", Status.NEW, LocalDateTime.now(), Duration.ZERO);
+        Task task2 = new Task("Таск 2", "Описание таска 2", Status.NEW, LocalDateTime.now(), Duration.ZERO);
         int task1ID = manager.createTask(task1);
         int task2ID = manager.createTask(task2);
 
@@ -104,10 +110,10 @@ class InMemoryTaskManagerTest {
 
     @Test
     void shouldUpdateAllFieldsOfTaskCorrectly() {
-        Task task = new Task("Таск 1", "Описание таска 1", Status.NEW);
+        Task task = new Task("Таск 1", "Описание таска 1", Status.NEW, LocalDateTime.now(), Duration.ZERO);
         int taskID = manager.createTask(task);
 
-        Task updatedTask = new Task(taskID, "Таск 2", "Описание таска 2", Status.DONE);
+        Task updatedTask = new Task(taskID, "Таск 2", "Описание таска 2", Status.DONE, LocalDateTime.now(), Duration.ZERO);
         manager.updateTask(updatedTask);
 
         assertEquals(taskID, updatedTask.getId(), "Айди задачи не совпадает после обновления.");
@@ -118,7 +124,7 @@ class InMemoryTaskManagerTest {
 
     @Test
     void shouldDeleteTask() {
-        Task task = new Task("Таск 1", "Описание таска 1", Status.NEW);
+        Task task = new Task("Таск 1", "Описание таска 1", Status.NEW, LocalDateTime.now(), Duration.ZERO);
         int taskID = manager.createTask(task);
 
         assertNotNull(manager.getTask(taskID), "Задача не была создана.");
@@ -129,8 +135,8 @@ class InMemoryTaskManagerTest {
 
     @Test
     void shouldReturnCorrectListOfTasks() {
-        Task task1 = new Task("Таск 1", "Описание таска 1", Status.NEW);
-        Task task2 = new Task("Таск 2", "Описание таска 2", Status.NEW);
+        Task task1 = new Task("Таск 1", "Описание таска 1", Status.NEW, LocalDateTime.now(), Duration.ZERO);
+        Task task2 = new Task("Таск 2", "Описание таска 2", Status.NEW, LocalDateTime.now(), Duration.ZERO);
         manager.createTask(task1);
         manager.createTask(task2);
 
@@ -148,8 +154,8 @@ class InMemoryTaskManagerTest {
         Epic epic1 = new Epic("Эпик 1", "Описание эпика 1");
         int epicID = manager.createEpic(epic1);
 
-        Subtask subtask1 = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID);
-        Subtask subtask2 = new Subtask("Сабтаск 2", "Сабтаск эпика 1", Status.NEW, epicID);
+        Subtask subtask1 = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID, LocalDateTime.now(), Duration.ZERO);
+        Subtask subtask2 = new Subtask("Сабтаск 2", "Сабтаск эпика 1", Status.NEW, epicID, LocalDateTime.now(), Duration.ZERO);
         manager.createSubtask(subtask1);
         manager.createSubtask(subtask2);
 
@@ -167,7 +173,7 @@ class InMemoryTaskManagerTest {
         Epic epic1 = new Epic("Эпик 1", "Описание эпика 1");
         int epicID = manager.createEpic(epic1);
 
-        Subtask subtask = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID);
+        Subtask subtask = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID, LocalDateTime.now(), Duration.ZERO);
         int subtaskID = manager.createSubtask(subtask);
 
         assertNotNull(manager.getSubtask(subtaskID), "Подзадача не была создана.");
@@ -181,10 +187,10 @@ class InMemoryTaskManagerTest {
         Epic epic1 = new Epic("Эпик 1", "Описание эпика 1");
         int epicID = manager.createEpic(epic1);
 
-        Subtask subtask = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID);
+        Subtask subtask = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID, LocalDateTime.now(), Duration.ZERO);
         int subtaskID = manager.createSubtask(subtask);
 
-        Subtask updatedSubtask = new Subtask(subtaskID, "Сабтаск 2", "Сабтаск эпика 2", Status.DONE, epicID);
+        Subtask updatedSubtask = new Subtask(subtaskID, "Сабтаск 2", "Сабтаск эпика 2", Status.DONE, epicID, LocalDateTime.now(), Duration.ZERO);
         manager.updateSubtask(updatedSubtask);
 
         assertEquals(subtaskID, updatedSubtask.getId(), "Айди подзадачи не совпадает после обновления.");
@@ -198,8 +204,8 @@ class InMemoryTaskManagerTest {
         Epic epic1 = new Epic("Эпик 1", "Описание эпика 1");
         int epicID = manager.createEpic(epic1);
 
-        Subtask subtask1 = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID);
-        Subtask subtask2 = new Subtask("Сабтаск 2", "Сабтаск эпика 1", Status.NEW, epicID);
+        Subtask subtask1 = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID, LocalDateTime.now(), Duration.ZERO);
+        Subtask subtask2 = new Subtask("Сабтаск 2", "Сабтаск эпика 1", Status.NEW, epicID, LocalDateTime.now(), Duration.ZERO);
         int subtask1ID = manager.createSubtask(subtask1);
         int subtask2ID = manager.createSubtask(subtask2);
 
@@ -269,14 +275,14 @@ class InMemoryTaskManagerTest {
         Epic epic = new Epic("Эпик 1", "Описание эпика 1");
         int epicID = manager.createEpic(epic);
 
-        Subtask subtask = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID);
+        Subtask subtask = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID, LocalDateTime.now(), Duration.ZERO);
         int subtaskID = manager.createSubtask(subtask);
 
         Epic originalFromManager = manager.getEpic(epicID);
 
         assertEquals(Status.NEW, originalFromManager.getStatus(), "Статус эпика не совпадает со статусом подзадачи.");
 
-        Subtask updatedSubtask = new Subtask(subtaskID, "Сабтаск 1", "Сабтаск эпика 1", Status.DONE, epicID);
+        Subtask updatedSubtask = new Subtask(subtaskID, "Сабтаск 1", "Сабтаск эпика 1", Status.DONE, epicID, LocalDateTime.now(), Duration.ZERO);
         manager.updateSubtask(updatedSubtask);
 
         Epic updatedFromManager = manager.getEpic(epicID);
@@ -289,8 +295,8 @@ class InMemoryTaskManagerTest {
         Epic epic = new Epic("Эпик 1", "Описание эпика 1");
         int epicID = manager.createEpic(epic);
 
-        Subtask subtask1 = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID);
-        Subtask subtask2 = new Subtask("Сабтаск 2", "Сабтаск эпика 1", Status.NEW, epicID);
+        Subtask subtask1 = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID, LocalDateTime.now(), Duration.ZERO);
+        Subtask subtask2 = new Subtask("Сабтаск 2", "Сабтаск эпика 1", Status.NEW, epicID, LocalDateTime.now(), Duration.ZERO);
         int subtask1ID = manager.createSubtask(subtask1);
         int subtask2ID = manager.createSubtask(subtask2);
 
@@ -308,8 +314,8 @@ class InMemoryTaskManagerTest {
         Epic epic = new Epic("Эпик 1", "Описание эпика 1");
         int epicID = manager.createEpic(epic);
 
-        Subtask subtask1 = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID);
-        Subtask subtask2 = new Subtask("Сабтаск 2", "Сабтаск эпика 1", Status.NEW, epicID);
+        Subtask subtask1 = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID, LocalDateTime.now(), Duration.ZERO);
+        Subtask subtask2 = new Subtask("Сабтаск 2", "Сабтаск эпика 1", Status.NEW, epicID, LocalDateTime.now(), Duration.ZERO);
         manager.createSubtask(subtask1);
         manager.createSubtask(subtask2);
 
@@ -327,7 +333,7 @@ class InMemoryTaskManagerTest {
         Epic epic = new Epic("Эпик 1", "Описание эпика 1");
         int epicID = manager.createEpic(epic);
 
-        Subtask subtask = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID);
+        Subtask subtask = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID, LocalDateTime.now(), Duration.ZERO);
         int subtaskID = manager.createSubtask(subtask);
 
         Assertions.assertNotNull(manager.getSubtask(subtaskID), "Подзадача не была добавлена.");
@@ -341,7 +347,7 @@ class InMemoryTaskManagerTest {
         Epic epic = new Epic("Эпик 1", "Описание эпика 1");
         int epicID = manager.createEpic(epic);
 
-        Subtask subtask = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID);
+        Subtask subtask = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID, LocalDateTime.now(), Duration.ZERO);
         int subtaskID = manager.createSubtask(subtask);
 
         Epic fromManager = manager.getEpic(epicID);
@@ -360,7 +366,7 @@ class InMemoryTaskManagerTest {
         Epic epic = new Epic("Эпик 1", "Описание эпика 1");
         int epicID = manager.createEpic(epic);
 
-        Subtask subtask = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID);
+        Subtask subtask = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID, LocalDateTime.now(), Duration.ZERO);
         int subtaskID = manager.createSubtask(subtask);
 
         manager.getSubtask(subtaskID);

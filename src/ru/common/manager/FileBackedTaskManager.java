@@ -7,6 +7,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,14 +18,18 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
     public FileBackedTaskManager(File file) {
         super();
         this.file = file;
+
+        if (file.getParentFile() != null && !file.getParentFile().exists()) {
+            file.getParentFile().mkdirs();
+        }
     }
 
     public static void main(String[] args) {
 
         FileBackedTaskManager manager = new FileBackedTaskManager(new File("resources/file.csv"));
 
-        Task task1 = new Task("Таск 1", "Описание таска 1", Status.NEW);
-        Task task2 = new Task("Таск 2", "Описание таска 2", Status.NEW);
+        Task task1 = new Task("Таск 1", "Описание таска 1", Status.NEW, null, Duration.ZERO);
+        Task task2 = new Task("Таск 2", "Описание таска 2", Status.NEW, null, Duration.ZERO);
         int task1ID = manager.createTask(task1);
         int task2ID = manager.createTask(task2);
 
@@ -32,9 +38,9 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
         int epic1ID = manager.createEpic(epic1);
         int epic2ID = manager.createEpic(epic2);
 
-        Subtask subtask1 = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epic1.getId());
-        Subtask subtask2 = new Subtask("Сабтаск 2", "Сабтаск эпика 1", Status.NEW, epic1.getId());
-        Subtask subtask3 = new Subtask("Сабтаск 3", "Сабтаск эпика 1", Status.NEW, epic1.getId());
+        Subtask subtask1 = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epic1.getId(), null, Duration.ZERO);
+        Subtask subtask2 = new Subtask("Сабтаск 2", "Сабтаск эпика 1", Status.NEW, epic1.getId(), null, Duration.ZERO);
+        Subtask subtask3 = new Subtask("Сабтаск 3", "Сабтаск эпика 1", Status.NEW, epic1.getId(), null, Duration.ZERO);
         int subtask1ID = manager.createSubtask(subtask1);
         int subtask2ID = manager.createSubtask(subtask2);
         int subtask3ID = manager.createSubtask(subtask3);
@@ -77,7 +83,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
 
     public void save() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-            writer.write("id,type,name,status,description,epic");
+            writer.write("id,type,name,status,description,startTime,duration,epic");
             writer.newLine();
 
             for (Task task : tasks.values()) {
@@ -96,7 +102,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
             }
 
             writer.newLine();
-
             writer.write(historyManager.toString());
             writer.newLine();
 
@@ -334,16 +339,23 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
         Status status = Status.valueOf(split[3]);
         String description = split[4];
 
+        LocalDateTime startTime = null;
+        if (!"null".equals(split[5])) {
+            startTime = LocalDateTime.parse(split[5]);
+        }
+
+        Duration duration = Duration.ofMinutes(Long.parseLong(split[6]));
+
         Integer epicID = null;
-        if (split.length > 5 && split[5] != null) {
-            epicID = Integer.parseInt(split[5]);
+        if (split.length > 7 && !split[7].isEmpty()) {
+            epicID = Integer.parseInt(split[7]);
         }
 
         switch (type) {
             case TASK:
-                return new Task(id, name, description, status);
+                return new Task(id, name, description, status, startTime, duration);
             case SUBTASK:
-                return new Subtask(id, name, description, status, epicID);
+                return new Subtask(id, name, description, status, epicID, startTime, duration);
             case EPIC:
                 return new Epic(id, name, description);
             default:
