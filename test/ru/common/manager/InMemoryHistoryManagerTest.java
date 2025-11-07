@@ -9,10 +9,12 @@ import ru.common.model.Status;
 import ru.common.model.Subtask;
 import ru.common.model.Task;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 class InMemoryHistoryManagerTest {
     private static TaskManager manager;
@@ -34,7 +36,7 @@ class InMemoryHistoryManagerTest {
 
     @Test
     void originalTaskIsKeptAfterAddingToHistoryManager() {
-        Task task = new Task("Таск 1", "Описание таска 1", Status.NEW);
+        Task task = new Task("Таск 1", "Описание таска 1", Status.NEW, LocalDateTime.now(), Duration.ZERO);
         manager.createTask(task);
         historyManager.add(task);
         Task taskStored = historyManager.getHistory().get(0);
@@ -49,17 +51,17 @@ class InMemoryHistoryManagerTest {
     void getHistoryReturnsTheSameArrayOfTasks() {
         List<Task> array = new ArrayList<>();
 
-        Task task = new Task("Таск 1", "Описание таска 1", Status.NEW);
+        Task task = new Task("Таск 1", "Описание таска 1", Status.NEW, LocalDateTime.now(), Duration.ZERO);
         int id1 = manager.createTask(task);
         manager.getTask(id1);
         array.add(task);
 
-        Task task2 = new Task("Таск 2", "Описание таска 2", Status.NEW);
+        Task task2 = new Task("Таск 2", "Описание таска 2", Status.NEW, LocalDateTime.now(), Duration.ZERO);
         int id2 = manager.createTask(task2);
         manager.getTask(id2);
         array.add(task2);
 
-        Task task3 = new Task("Таск 3", "Описание таска 3", Status.NEW);
+        Task task3 = new Task("Таск 3", "Описание таска 3", Status.NEW, LocalDateTime.now(), Duration.ZERO);
         int id3 = manager.createTask(task3);
         manager.getTask(id3);
         array.add(task3);
@@ -71,7 +73,7 @@ class InMemoryHistoryManagerTest {
 
     @Test
     void shouldCorrectlyAddTasks() {
-        Task task = new Task("Таск 1", "Описание таска 1", Status.NEW);
+        Task task = new Task("Таск 1", "Описание таска 1", Status.NEW, LocalDateTime.now(), Duration.ZERO);
         manager.createTask(task);
         historyManager.add(task);
 
@@ -80,7 +82,7 @@ class InMemoryHistoryManagerTest {
 
     @Test
     void shouldCorrectlyDeleteTasks() {
-        Task task = new Task("Таск 1", "Описание таска 1", Status.NEW);
+        Task task = new Task("Таск 1", "Описание таска 1", Status.NEW, LocalDateTime.now(), Duration.ZERO);
         manager.createTask(task);
         historyManager.add(task);
 
@@ -91,7 +93,7 @@ class InMemoryHistoryManagerTest {
 
     @Test
     void changingTaskShouldChangeDataInBothManagers() {
-        Task task = new Task("Таск 1", "Описание таска 1", Status.NEW);
+        Task task = new Task("Таск 1", "Описание таска 1", Status.NEW, LocalDateTime.now(), Duration.ZERO);
         int id = manager.createTask(task);
 
         Task fromManager = manager.getTask(id);
@@ -117,7 +119,7 @@ class InMemoryHistoryManagerTest {
         Epic epic = new Epic("Эпик 1", "Описание эпика 1");
         int epicID = manager.createEpic(epic);
 
-        Subtask subtask = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID);
+        Subtask subtask = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID, LocalDateTime.now(), Duration.ZERO);
         int subtaskID = manager.createSubtask(subtask);
 
         Subtask fromManager = manager.getSubtask(subtaskID);
@@ -143,7 +145,7 @@ class InMemoryHistoryManagerTest {
         Epic epic = new Epic("Эпик 1", "Описание эпика 1");
         int epicID = manager.createEpic(epic);
 
-        Subtask subtask = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID);
+        Subtask subtask = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epicID, LocalDateTime.now(), Duration.ZERO);
         int subtaskID = manager.createSubtask(subtask);
 
         manager.getSubtask(subtaskID);
@@ -182,6 +184,46 @@ class InMemoryHistoryManagerTest {
         Assertions.assertEquals(fromManager.getStatus(), fromHistory.getStatus(), "Статус эпика из менеджера задач и менеджера истории не совпадают.");
         Assertions.assertEquals(fromManager.getSubtaskIDs(), fromHistory.getSubtaskIDs(), "Список айди подзадач эпика из менеджера задач и менеджера истории не совпадают.");
 
+    }
+
+    @Test
+    public void shouldReturnEmptyHistoryInitially() {
+        assertTrue(historyManager.getHistory().isEmpty(), "История должна быть пустой.");
+    }
+
+    @Test
+    public void shouldNotDuplicateTaskInHistory() {
+        Task task = new Task("Таск 1", "Описание таска 1", Status.NEW, LocalDateTime.now(), Duration.ZERO);
+        int id = manager.createTask(task);
+
+        historyManager.add(task);
+        historyManager.add(task);
+
+        assertEquals(1, historyManager.getHistory().size());
+
+    }
+
+    @Test
+    public void shouldRemoveTaskFromBeginningMiddleAndEnd() {
+        Task task1 = new Task("Таск 1", "Описание таска 1", Status.NEW, LocalDateTime.now(), Duration.ZERO);
+        Task task2 = new Task("Таск 2", "Описание таска 2", Status.NEW, LocalDateTime.now(), Duration.ZERO);
+        Task task3 = new Task("Таск 3", "Описание таска 3", Status.NEW, LocalDateTime.now(), Duration.ZERO);
+        int task1ID = manager.createTask(task1);
+        int task2ID = manager.createTask(task2);
+        int task3ID = manager.createTask(task3);
+
+        historyManager.add(task1);
+        historyManager.add(task2);
+        historyManager.add(task3);
+
+        historyManager.remove(task1ID);
+        assertFalse(historyManager.getHistory().contains(task1));
+
+        historyManager.remove(task2ID);
+        assertFalse(historyManager.getHistory().contains(task2));
+
+        historyManager.remove(task3ID);
+        assertTrue(historyManager.getHistory().isEmpty());
     }
 
 }

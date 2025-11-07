@@ -5,6 +5,9 @@ import org.junit.jupiter.api.Test;
 import ru.common.model.Status;
 import ru.common.model.Task;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class ManagersTest {
@@ -19,7 +22,7 @@ class ManagersTest {
 
     @Test
     void shouldReturnInitializedTaskManager() {
-        Task task1 = new Task("Таск 1", "Описание таска 1", Status.NEW);
+        Task task1 = new Task("Таск 1", "Описание таска 1", Status.NEW, LocalDateTime.now(), Duration.ZERO);
         int taskID = manager.createTask(task1);
         Task returnedTask = manager.getTask(taskID);
 
@@ -30,7 +33,7 @@ class ManagersTest {
 
     @Test
     void shouldReturnInitializedHistoryManager() {
-        Task task1 = new Task("Таск 1", "Описание таска 1", Status.NEW);
+        Task task1 = new Task("Таск 1", "Описание таска 1", Status.NEW, LocalDateTime.now(), Duration.ZERO);
         manager.createTask(task1);
         historyManager.add(task1);
 

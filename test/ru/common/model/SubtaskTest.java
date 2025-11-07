@@ -6,6 +6,8 @@ import ru.common.manager.InMemoryTaskManager;
 import ru.common.manager.Managers;
 import ru.common.manager.TaskManager;
 
+import java.time.Duration;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class SubtaskTest {
@@ -20,9 +22,9 @@ class SubtaskTest {
     void subtaskObjectsAreEqualIftheirIDsAreEqual() {
         Epic epic1 = new Epic("Эпик 1", "Описание эпика 1");
         manager.createEpic(epic1);
-        Subtask subtask1 = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epic1.getId());
+        Subtask subtask1 = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, epic1.getId(), null, Duration.ZERO);
         int subtask1ID = manager.createSubtask(subtask1);
-        Subtask subtask2 = new Subtask("Сабтаск 2", "Сабтаск эпика 2", Status.IN_PROGRESS, epic1.getId());
+        Subtask subtask2 = new Subtask("Сабтаск 2", "Сабтаск эпика 2", Status.IN_PROGRESS, epic1.getId(), null, Duration.ZERO);
         InMemoryTaskManager.id = subtask1ID;
         manager.createSubtask(subtask2);
         System.out.println(subtask1);
@@ -33,7 +35,7 @@ class SubtaskTest {
     @Test
     void shouldNotAllowSubtaskToBeItsOwnEpic() {
         InMemoryTaskManager.id = 100;
-        Subtask subtask1 = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, 100);
+        Subtask subtask1 = new Subtask("Сабтаск 1", "Сабтаск эпика 1", Status.NEW, 100, null, Duration.ZERO);
         int subtaskID = manager.createSubtask(subtask1);
         assertEquals(0, subtaskID, "Подзадачу нельзя сделать своим же эпиком");
     }

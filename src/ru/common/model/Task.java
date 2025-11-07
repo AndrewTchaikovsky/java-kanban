@@ -1,5 +1,7 @@
 package ru.common.model;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class Task {
@@ -8,20 +10,33 @@ public class Task {
     protected int id;
     protected Status status;
     protected TaskType type;
+    protected LocalDateTime startTime;
+    protected Duration duration;
 
-    public Task(String name, String description, Status status) {
+    public Task(String name, String description, Status status, LocalDateTime startTime, Duration duration) {
         this.name = name;
         this.description = description;
         this.status = status;
         this.type = TaskType.TASK;
+        this.startTime = startTime;
+        this.duration = duration;
     }
 
-    public Task(int id, String name, String description, Status status) {
+    public Task(int id, String name, String description, Status status, LocalDateTime startTime, Duration duration) {
         this.name = name;
         this.description = description;
         this.status = status;
         this.id = id;
         this.type = TaskType.TASK;
+        this.startTime = startTime;
+        this.duration = duration;
+    }
+
+    public LocalDateTime getEndTime() {
+        if (startTime == null || duration == null) {
+            return null;
+        }
+        return startTime.plusMinutes(duration.toMinutes());
     }
 
     @Override
@@ -38,7 +53,16 @@ public class Task {
 
     @Override
     public String toString() {
-        return getId() + "," + getType() + "," + getName() + "," + getStatus() + "," + getDescription();
+        String start = "null";
+        if (startTime != null) {
+            start = startTime.toString();
+        }
+
+        String durationString = "0";
+        if (duration != null) {
+            durationString = String.valueOf(duration.toMinutes());
+        }
+        return getId() + "," + getType() + "," + getName() + "," + getStatus() + "," + getDescription() + "," + start + "," + durationString + ",";
     }
 
     public String getName() {
@@ -76,4 +100,21 @@ public class Task {
     public TaskType getType() {
         return type;
     }
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public Duration getDuration() {
+        return duration;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public void setDuration(Duration duration) {
+        this.duration = duration;
+    }
+
 }
